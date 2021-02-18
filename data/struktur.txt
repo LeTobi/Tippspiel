@@ -1,0 +1,71 @@
+type User
+    int registerdate
+    int lastlogin
+    char 50 email
+    char 100 name
+    char 100 token
+    GameTipp [] gameTipps
+    EventTipp [] eventTipps
+    Group [] groups
+    int points
+    bool perm_eventAnnounce
+    bool perm_eventReport
+    bool perm_gameAnnounce
+    bool perm_gameReport
+    bool perm_console
+
+type Group
+    char 100 name
+    char 100 token
+    User [] users
+
+type Player
+    char 100 name
+    Team team
+
+type Team
+    char 100 name
+    char 10 short
+    Game [] games
+    Player [] players
+
+type Location
+    char 100 name
+
+type Event
+    char 100 name
+    char 256 description
+    int deadline
+    int eventStatus
+    Game [] games
+    EventTipp [] tipps
+    Team winner
+    Player topscorer
+
+type EventTipp
+    Event event
+    User user
+    Team winner
+    Player topscorer
+    int reward
+
+type Game
+    int start
+    Location location
+    char 256 stream
+    Event event
+    int gameStatus
+    int phase
+    Team 2 teams
+    int 2 scores
+    int 2 penalty
+    Player [] scorers
+    GameTipp [] tipps
+
+type GameTipp
+    Game game
+    User user
+    int 2 bet
+    Team betWinner
+    Player betPlayer
+    int reward

@@ -1,0 +1,8 @@
+selection build
+    exe tippspiel main.cpp
+    link pthread
+    link boost_system
+    link boost_thread
+    link tc
+    link crypto
+    link ssl
