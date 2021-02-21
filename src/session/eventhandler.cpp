@@ -1,6 +1,8 @@
 #include "eventhandler.h"
-#include "manipulation/consoleinput.h"
-#include "manipulation/utils.h"
+#include "../manipulation/consoleinput.h"
+#include "../manipulation/game.h"
+#include "utils.h"
+#include "sync.h"
 #include <sstream>
 
 void signup(Client& client, h2rfp::Message msg)
@@ -11,13 +13,12 @@ void signup(Client& client, h2rfp::Message msg)
     input.email = StringPlus(msg.data.get("email","")).toLowerCase();
     input.jsid = msg.id;
 
-    if (input.name.empty() || input.email.empty())
-    {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::client_err);
-        answer.put("error",ErrCode::NO_ERROR);
-        answer.put("data.info","Übergabeparameter sind nicht vollständig.");
-        client.endpoint.respond(msg.id,answer);
+    if (input.name.empty()) {
+        return_client_error(client,msg,"name parameter fehlt");
+        return;
+    }
+    if (input.email.empty()) {
+        return_client_error(client,msg,"email parameter fehlt");
         return;
     }
 
@@ -25,20 +26,16 @@ void signup(Client& client, h2rfp::Message msg)
     {
         if (StringPlus(user["name"].get<std::string>()).toLowerCase() == StringPlus(input.name).toLowerCase())
         {
-            h2rfp::JSObject answer;
-            answer.put("state",RFPResult::user_err);
-            answer.put("error",ErrCode::USERNAME_TAKEN);
+            h2rfp::JSObject answer = make_user_error(ERROR_USERNAME_TAKEN);
             answer.put("data.name",input.name);
-            client.endpoint.respond(msg.id, answer);
+            return_result(client,msg,answer);
             return;
         }
         if (user["email"].get<std::string>() == input.email)
         {
-            h2rfp::JSObject answer;
-            answer.put("state",RFPResult::user_err);
-            answer.put("error",ErrCode::EMAIL_TAKEN);
+            h2rfp::JSObject answer = make_user_error(ERROR_EMAIL_TAKEN);
             answer.put("data.email",input.email);
-            client.endpoint.respond(msg.id, answer);
+            return_result(client,msg,answer);
             return;
         }
     }
@@ -66,16 +63,15 @@ void signup(Client& client, h2rfp::Message msg)
 
     if (!success)
     {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::server_err);
-        answer.put("error",ErrCode::NO_ERROR);
-        answer.put("data.info","Das Token konnte nicht generiert werden. (Fehler in der Datei?)");
-        client.endpoint.respond(msg.id, answer);
+        return_server_error(client,msg,"Das Token konnte nicht generiert werden. (Fehler in der Datei?)");
         return;
     }
     
     if (!data->database.is_good())
+    {
+        return_server_error(client,msg,"Kritischer Datenbankfehler");
         return;
+    }
 
     client.emailtask = data->emails.tasks.makeTask(input);
 }
@@ -84,7 +80,7 @@ void signup_complete(Client& client, TokenEmail::Result res)
 {
     h2rfp::JSObject answer;
     answer.put("state",res.result);
-    answer.put("error",0);
+    answer.put("error",ERROR_NONE);
     client.endpoint.respond(res.jsid, answer);
 }
 
@@ -95,11 +91,7 @@ void signin(Client& client, h2rfp::Message msg)
 
     if (token.empty())
     {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::client_err);
-        answer.put("error",ErrCode::NO_ERROR);
-        answer.put("data.info","Es wurde kein token angegeben");
-        client.endpoint.respond(msg.id, answer);
+        return_client_error(client,msg,"Es wurde kein token angegeben");
         return;
     }
 
@@ -107,25 +99,28 @@ void signin(Client& client, h2rfp::Message msg)
 
     if (client.user.is_null())
     {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::user_err);
-        answer.put("error",ErrCode::LOGIN_DENIED);
-        client.endpoint.respond(msg.id, answer);
+        return_result(client,msg,make_user_error(ERROR_LOGIN_DENIED));
         return;
     }
 
-    client.user["lastlogin"].set( get_time() );
+    client.user["lastupdate"].set( get_time() );
 
-    h2rfp::JSObject answer;
-    answer.put("state",RFPResult::success);
-    answer.put("error",ErrCode::NO_ERROR);
-    answer.put("data.upToDate",true); // TODO
-    client.endpoint.respond(msg.id, answer);
+    h2rfp::JSObject answer = make_result();
+    int lastknown = client.user["lastupdate"].get<int>();
+    int lastsupport = data->virtualdb.get_history_support();
+    if (is_retry && lastknown > lastsupport) {
+        answer.put("data.upToDate",true);
+        answer.put_child("data.updates",data->virtualdb.get_history(lastknown));
+    } else {
+        answer.put("data.upToDate",false);
+    }
+    
+    return_result(client,msg,answer);
 }
 
 void inform_identity(Client& client, h2rfp::Message msg)
 {
-    if (!check_login(client,msg.id))
+    if (!check_login(client,msg))
         return;
 
     h2rfp::JSObject gtipps;
@@ -147,8 +142,8 @@ void inform_identity(Client& client, h2rfp::Message msg)
 
     h2rfp::JSObject answer;
     
-    answer.put("state",RFPResult::success);
-    answer.put("error",ErrCode::NO_ERROR);
+    answer.put("state",RESULT_SUCCESS);
+    answer.put("error",ERROR_NONE);
     answer.put("data.id", client.user.index());
     answer.put("data.name", client.user["name"].get<std::string>());
     answer.add_child("data.eventTipps",etipps);
@@ -165,9 +160,8 @@ void inform_identity(Client& client, h2rfp::Message msg)
 
 void console_input(Client& client, h2rfp::Message msg)
 {
-    if (!check_login(client,msg.id))
-        return;
-    if (!check_permission("perm_console",client,msg.id))
+    if (!check_login(client,msg) ||
+        !check_permission(client,msg,"perm_console") )
         return;
 
     std::string line = msg.data.get("cmd","");
@@ -186,12 +180,13 @@ void console_input(Client& client, h2rfp::Message msg)
     else if (cmd == "cache") {
         cmd_cache(client,msg,rest);
     }
+    else if (cmd=="guard") {
+        cmd_guard(client,msg,rest);
+    }
     else {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::success);
-        answer.put("error",ErrCode::NO_ERROR);
+        h2rfp::JSObject answer = make_result();
         answer.put("data.text",std::string("unbekannter befehl: ")+cmd);
-        client.endpoint.respond(msg.id, answer);
+        return_result(client,msg,answer);
     }
 
 }
@@ -202,11 +197,7 @@ void serve_data(Client& client, h2rfp::Message msg)
     int tid = VirtualDB::get_table(table);
     if (tid < 0)
     {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::client_err);
-        answer.put("error",ErrCode::NO_ERROR);
-        answer.put("data.text",std::string("Tabelle nicht bekannt: ")+table);
-        client.endpoint.respond(msg.id, answer);
+        return_client_error(client,msg,std::string("Tabelle nicht bekannt: ")+table);
         return;
     }
 
@@ -214,33 +205,24 @@ void serve_data(Client& client, h2rfp::Message msg)
     try {
         ids = msg.data.get_child("ids");
     } catch (boost::property_tree::ptree_error& e) {
-        h2rfp::JSObject answer;
-        answer.put("state",RFPResult::client_err);
-        answer.put("error",ErrCode::NO_ERROR);
-        answer.put("data.text","Keine Ids angegeben");
-        client.endpoint.respond(msg.id, answer);
+        return_client_error(client,msg,"Keine Ids angegeben");
         return;
     }
 
     h2rfp::JSObject outlist;
     for (auto& item: ids)
     {
-        int id = item.second.get_value(0);
+        unsigned int id = item.second.get_value(0);
         if (id==0)
         {
-            h2rfp::JSObject answer;
-            answer.put("state",RFPResult::client_err);
-            answer.put("error",ErrCode::NO_ERROR);
-            answer.put("data.text","Eine Id stimmt nicht");
-            client.endpoint.respond(msg.id, answer);
+            return_client_error(client,msg,"Eine Id stimmt nicht");
             return;
         }
-        outlist.push_back(std::make_pair("", data->virtualdb.get_entry(tid,id)));
+        VirtualDB::Entry entry (tid, id);
+        outlist.push_back(std::make_pair("", custom_client_data(client,entry)));
     }
 
-    h2rfp::JSObject output;
-    output.put("state",RFPResult::success);
-    output.put("error",ErrCode::NO_ERROR);
+    h2rfp::JSObject output = make_result();
     output.put_child("data", outlist);
-    client.endpoint.respond(msg.id, output);
+    return_result(client,msg,output);
 }

@@ -52,7 +52,7 @@ void TokenEmail::tick()
 void TokenEmail::begin_cycle()
 {
     Input& input = tasks.getCurrent();
-    result.result = RFPResult::success;
+    result.result = RESULT_SUCCESS;
     result.jsid = input.jsid;
     socket.connect();
 }
@@ -61,11 +61,11 @@ void TokenEmail::send()
 {
     Input& data = tasks.getCurrent();
 
-    std::string key = get_config("../config/emailkey.txt");
+    std::string key = get_config("../../config/emailkey.txt");
     if (key.empty())
     {
         log << "Der Emailschlüssel kann nicht gelesen werden." << std::endl;
-        result.result = RFPResult::server_err;
+        result.result = RESULT_SERVER_ERROR;
         socket.close();
     }
 
@@ -79,7 +79,7 @@ void TokenEmail::send()
         boost::property_tree::write_json(httpbody, reqdata, false);
     } catch (boost::property_tree::json_parser_error& e) {
         log << "Die Signup daten konnten nicht in JSON formattiert werden: " << e.what() << std::endl;
-        result.result = RFPResult::server_err;
+        result.result = RESULT_SERVER_ERROR;
         socket.close();
         return;
     }
@@ -96,7 +96,7 @@ void TokenEmail::send()
 
 void TokenEmail::checkHttpResponse()
 {
-    if (result.result != RFPResult::success)
+    if (result.result != RESULT_SUCCESS)
     {
         tries = 0;
         end_cycle_error();
@@ -111,7 +111,7 @@ void TokenEmail::checkHttpResponse()
         tries = 0;
         log << "email.php meldet fehler:" << std::endl;
         log << received << std::endl;
-        result.result = RFPResult::server_err;
+        result.result = RESULT_SERVER_ERROR;
         end_cycle_error();
     }
     

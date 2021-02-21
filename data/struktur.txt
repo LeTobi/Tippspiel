@@ -1,6 +1,6 @@
 type User
     int registerdate
-    int lastlogin
+    int lastupdate
     char 50 email
     char 100 name
     char 100 token
@@ -15,24 +15,35 @@ type User
     bool perm_console
 
 type Group
+    User creator
+    int createdAt
     char 100 name
     char 100 token
     User [] users
 
 type Player
+    User creator
+    int createdAt
     char 100 name
     Team team
 
 type Team
+    User creator
+    int createdAt
     char 100 name
     char 10 short
     Game [] games
     Player [] players
 
 type Location
+    User creator
+    int createdAt
     char 100 name
 
 type Event
+    User creator
+    int createdAt
+    User reporter
     char 100 name
     char 256 description
     int deadline
@@ -45,13 +56,18 @@ type Event
 type EventTipp
     Event event
     User user
+    int createdAt
     Team winner
     Player topscorer
     int reward
 
 type Game
+    User creator
+    int createdAt
+    User reporter
     int start
     Location location
+    char 100 name
     char 256 stream
     Event event
     int gameStatus
@@ -61,11 +77,14 @@ type Game
     int 2 penalty
     Player [] scorers
     GameTipp [] tipps
+    Game 2 previousStage
+    Game nextStage
 
 type GameTipp
     Game game
     User user
+    int createdAt
     int 2 bet
-    Team betWinner
-    Player betPlayer
+    Team winner
+    Player topscorer
     int reward

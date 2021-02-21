@@ -6,16 +6,24 @@
 #include "enums.h"
 #include "components/email.h"
 #include "components/virtualdb.h"
+#include "components/gameobserver.h"
 
 using namespace tobilib;
 
 class Client{
 public:
+    struct Update {
+        Time time;
+        h2rfp::Response response;
+    };
+
     Client();
 
     h2rfp::WSS_Endpoint endpoint;
     Database::Cluster user;
     unsigned int emailtask = 0;
+    std::vector<Update> updates;
+    h2rfp::Response pong;
     
     static network::Acceptor acceptor;
 };
@@ -28,6 +36,7 @@ public:
     Database database;
     VirtualDB virtualdb;
     TokenEmail emails;
+    GameObserver observer;
     std::vector<Client> clients;
 };
 

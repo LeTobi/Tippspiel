@@ -1,7 +1,7 @@
 #ifndef TIPPSPIEL_EVENTHANDLER_H
 #define TIPPSPIEL_EVENTHANDLER_H
 
-#include "global.h"
+#include "../global.h"
 
 void signup(Client&, h2rfp::Message);
 void signup_complete(Client&, TokenEmail::Result);

@@ -2,6 +2,7 @@
 #include "../global.h"
 #include <tobilib/general/exception.hpp>
 #include <utility>
+#include <cmath>
 
 const Time VirtualDB::WAIT_ENDLESS = 3600;
 const Time VirtualDB::WAIT_LONG = 60;
@@ -12,7 +13,7 @@ const int VirtualDB::CACHE_SIZE = 500;
 const Time VirtualDB::HISTORY_SIZE = 10*60;
 
 std::vector<std::string> VirtualDB::TableNames = {
-    "users", "groups", "players", "teams", "events", "games", "etipps", "gtipps"
+    "User", "Group", "Player", "Team", "Event", "Game", "EventTipp", "GameTipp"
 };
 
 using namespace tobilib;
@@ -21,6 +22,25 @@ VirtualDB::Entry::Entry(int t, unsigned int i):
     table(t),
     idx(i)
 { }
+
+VirtualDB::Entry::Entry(const Database::Cluster& cluster)
+{
+    if (cluster.is_null())
+    {
+        table = TABLE_USER;
+        idx = 0;
+        return;
+    }
+    table = get_table(cluster.type().name);
+    if (table<0)
+        throw tobilib::Exception("Cluster is not part of sync","VirtualDB::Entry constructor");
+    idx = cluster.index();
+}
+
+VirtualDB::Entry::operator Database::Cluster() const
+{
+    return ::data->database.list(TableNames[table])[idx];
+}
 
 bool VirtualDB::Entry::operator==(const Entry& other) const
 {
@@ -54,9 +74,8 @@ int VirtualDB::get_table(const std::string& name)
     return -1;
 }
 
-h2rfp::JSObject VirtualDB::get_entry(int t,unsigned int i)
+h2rfp::JSObject VirtualDB::get_data(Entry wanted)
 {
-    Entry wanted(t,i);
     stat_requests++;
     for (int i=0;i<cache.size();i++)
     {
@@ -76,9 +95,8 @@ h2rfp::JSObject VirtualDB::get_entry(int t,unsigned int i)
     return cache.front().msg;
 }
 
-int VirtualDB::find_entry(int t, unsigned int i)
+int VirtualDB::find_entry(Entry wanted)
 {
-    Entry wanted(t,i);
     for (int i=0;i<cache.size();i++)
     {
         if (cache[i].dbentry==wanted)
@@ -87,14 +105,20 @@ int VirtualDB::find_entry(int t, unsigned int i)
     return -1;
 }
 
-h2rfp::JSObject VirtualDB::get_history(Time)
+h2rfp::JSObject VirtualDB::get_history(Time from)
 {
-
+    std::set<Entry> items;
+    for (int i=history.size()-1; i>=1; i--)
+        if (history[i].period_end >= from)
+            items.insert(history[i].entries.begin(),history[i].entries.end());
+    return set_to_update(items);
 }
 
 Time VirtualDB::get_history_support()
 {
-
+    if (history.empty())
+        return get_time();
+    return history.back().period_begin;
 }
 
 void VirtualDB::clear_cache()
@@ -104,35 +128,96 @@ void VirtualDB::clear_cache()
     stat_caches = 0;
 }
 
+void VirtualDB::update(Entry entry, Time max_wait)
+{
+    if (entry.table == TABLE_GAME)
+        ::data->observer.update(entry);
+
+    for (auto it=cache.begin();it!=cache.end();++it)
+        if (it->dbentry == entry)
+            cache.erase(it);
+    HistoryEntry& now = history_now();
+    now.entries.insert(entry);
+    now.period_end = std::min(get_time()+max_wait, now.period_end);
+}
+
+void VirtualDB::tick()
+{
+    if (history_now().period_end <= get_time())
+        history_advance();
+}
+
+h2rfp::JSObject VirtualDB::set_to_update(const std::set<Entry>& entries)
+{
+    std::vector<h2rfp::JSObject> tablelists (TableNames.size());
+    for (const Entry& entry: entries) {
+        h2rfp::JSObject item;
+        item.put_value(entry.idx);
+        tablelists[entry.table].push_back(std::make_pair("",item));
+    }
+    h2rfp::JSObject output;
+    for (int i=0;i<tablelists.size();i++)
+        if (!tablelists[i].empty())
+            output.put_child(TableNames[i],tablelists[i]);
+    return output;
+}
+
+VirtualDB::HistoryEntry& VirtualDB::history_now()
+{
+    if (!history.empty())
+        return history.front();
+    history_advance();
+    return history.front();
+}
+
+void VirtualDB::history_advance()
+{
+    Time now = get_time();
+
+    if (!history.empty())
+    {
+        Update update;
+        update.data = set_to_update(history.front().entries);
+        update.time = now;
+        updates.push(std::move(update));
+    }
+
+    history.emplace(history.begin());
+    history.front().period_begin = now;
+    history.front().period_end = now + WAIT_ENDLESS;
+
+    while (history.back().period_begin < now-HISTORY_SIZE)
+        history.pop_back();
+}
+
 h2rfp::JSObject VirtualDB::data(Entry entry)
 {
     switch (entry.table)
     {
-        case Tables::users:
-            return data_user(entry.idx);
-        case Tables::groups:
-            return data_group(entry.idx);
-        case Tables::players:
-            return data_player(entry.idx);
-        case Tables::teams:
-            return data_team(entry.idx);
-        case Tables::events:
-            return data_event(entry.idx);
-        case Tables::games:
-            return data_game(entry.idx);
-        case Tables::etipps:
-            return data_eventTipp(entry.idx);
-        case Tables::gtipps:
-            return data_gameTipp(entry.idx);
+        case TABLE_USER:
+            return data_user(entry);
+        case TABLE_GROUP:
+            return data_group(entry);
+        case TABLE_PLAYER:
+            return data_player(entry);
+        case TABLE_TEAM:
+            return data_team(entry);
+        case TABLE_EVENT:
+            return data_event(entry);
+        case TABLE_GAME:
+            return data_game(entry);
+        case TABLE_ETIPP:
+            return data_eventTipp(entry);
+        case TABLE_GTIPP:
+            return data_gameTipp(entry);
         default:
             throw Exception("Tabelle existiert nicht","VirtualDB::data()");
     }
 }
 
-h2rfp::JSObject VirtualDB::data_user(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_user(Database::Cluster user)
 {
     h2rfp::JSObject out;
-    Database::Cluster user = ::data->database.list("User")[idx];
     if (user.is_null())
         return out;
     out.put("id",user.index());
@@ -141,10 +226,9 @@ h2rfp::JSObject VirtualDB::data_user(unsigned int idx)
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_group(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_group(Database::Cluster group)
 {
     h2rfp::JSObject out;
-    Database::Cluster group = ::data->database.list("Group")[idx];
     if (group.is_null())
         return out;
     out.put("id",group.index());
@@ -159,10 +243,9 @@ h2rfp::JSObject VirtualDB::data_group(unsigned int idx)
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_player(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_player(Database::Cluster player)
 {
     h2rfp::JSObject out;
-    Database::Cluster player = ::data->database.list("Player")[idx];
     if (player.is_null())
         return out;
     out.put("id",player.index());
@@ -171,10 +254,9 @@ h2rfp::JSObject VirtualDB::data_player(unsigned int idx)
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_team(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_team(Database::Cluster team)
 {
     h2rfp::JSObject out;
-    Database::Cluster team = ::data->database.list("Team")[idx];
     if (team.is_null())
         return out;
     out.put("id",team.index());
@@ -199,10 +281,9 @@ h2rfp::JSObject VirtualDB::data_team(unsigned int idx)
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_event(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_event(Database::Cluster event)
 {
     h2rfp::JSObject out;
-    Database::Cluster event = ::data->database.list("Event")[idx];
     if (event.is_null())
         return out;
     out.put("id",event.index());
@@ -231,10 +312,9 @@ h2rfp::JSObject VirtualDB::data_event(unsigned int idx)
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_game(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_game(Database::Cluster game)
 {
     h2rfp::JSObject out;
-    Database::Cluster game = ::data->database.list("Game")[idx];
     if (game.is_null())
         return out;
     out.put("id",game.index());
@@ -273,33 +353,40 @@ h2rfp::JSObject VirtualDB::data_game(unsigned int idx)
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_eventTipp(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_eventTipp(Database::Cluster etipp)
 {
     h2rfp::JSObject out;
-    Database::Cluster etipp = ::data->database.list("EventTipp")[idx];
     if (etipp.is_null())
         return out;
     out.put("id",etipp.index());
     out.put("event",etipp["event"]->index());
     out.put("user",etipp["user"]->index());
+    out.put("reward",etipp["reward"].get<int>());
+
+    if (etipp["event"]["deadline"].get<int>() > get_time())
+        return out;
+
     out.put("winner",etipp["winner"]->index());
     out.put("topscorer",etipp["topscorer"]->index());
-    out.put("reward",etipp["reward"].get<int>());
     return out;
 }
 
-h2rfp::JSObject VirtualDB::data_gameTipp(unsigned int idx)
+h2rfp::JSObject VirtualDB::data_gameTipp(Database::Cluster gtipp)
 {
     h2rfp::JSObject out;
-    Database::Cluster gtipp = ::data->database.list("GameTipp")[idx];
     if (gtipp.is_null())
         return out;
     out.put("id",gtipp.index());
     out.put("game",gtipp["game"]->index());
     out.put("user",gtipp["user"]->index());
+    out.put("reward",gtipp["reward"].get<int>());
+
+    if (gtipp["game"]["start"].get<int>() > get_time())
+        return out;
+
     out.put("bet1",gtipp["bet"][0].get<int>());
     out.put("bet2",gtipp["bet"][1].get<int>());
-    out.put("betWinner",gtipp["betWinner"]->index());
-    out.put("reward",gtipp["reward"].get<int>());
+    out.put("winner",gtipp["winner"]->index());
+    out.put("topscorer",gtipp["topscorer"]->index());
     return out;
 }

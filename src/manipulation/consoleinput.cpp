@@ -7,8 +7,8 @@
 void cmd_echo(Client& client, h2rfp::Message msg, const std::string& txt)
 {
     h2rfp::JSObject answer;
-    answer.put("state",RFPResult::success);
-    answer.put("error",ErrCode::NO_ERROR);
+    answer.put("state",RESULT_SUCCESS);
+    answer.put("error",ERROR_NONE);
     answer.put("data.text",txt);
     client.endpoint.respond(msg.id, answer);
 }
@@ -20,7 +20,7 @@ void cmd_access(Client& client, h2rfp::Message msg, const std::string& cmd)
 
 void cmd_print(Client& client, h2rfp::Message msg, const std::string& cmd)
 {
-    std::string path = get_config("../config/export.txt");
+    std::string path = get_config("../../config/export.txt");
     if (path.empty())
     {
         cmd_echo(client, msg, "export.txt kann nicht gelesen werden.");
@@ -99,7 +99,7 @@ void cmd_cache(Client& client, h2rfp::Message msg, const std::string& in)
             cmd_echo(client,msg,"tabelle existiert nicht");
             return;
         }
-        int result = data->virtualdb.find_entry(tid,index);
+        int result = data->virtualdb.find_entry(VirtualDB::Entry(tid,index));
         if (result<0)
         {
             cmd_echo(client,msg,"objekt ist nicht im cache");
@@ -107,6 +107,36 @@ void cmd_cache(Client& client, h2rfp::Message msg, const std::string& in)
         }
         output << "objekt ist an der Stelle " << result;
         cmd_echo(client,msg,output.str());
+        return;
+    }
+    else if (cmd=="update")
+    {
+        std::string table;
+        unsigned int id;
+        Time urgency;
+        input >> table >> id;
+        if (!input)
+        {
+            cmd_echo(client,msg,"update: erwarte tabelle und index");
+            return;
+        }
+        input >> urgency;
+        if (!input)
+            urgency = VirtualDB::WAIT_NOT;
+        Database::ClusterType type = data->database.getType(table);
+        if (type == Database::ClusterType::invalid)
+        {
+            cmd_echo(client,msg,"tabelle existiert nicht");
+            return;
+        }
+        Database::Cluster cluster = data->database.list(table)[id];
+        if (cluster.is_null())
+        {
+            cmd_echo(client,msg,"ungültiger index");
+            return;
+        }
+        data->virtualdb.update(cluster,urgency);
+        cmd_echo(client,msg,std::string("Update wurde eingereicht mit Verzögerung ")+std::to_string(urgency));
         return;
     }
     else if (cmd=="clear")
@@ -118,4 +148,44 @@ void cmd_cache(Client& client, h2rfp::Message msg, const std::string& in)
     else {
         cmd_echo(client,msg,"Unbekannter Befehl");
     }
+}
+
+void cmd_guard(Client& client, h2rfp::Message msg, const std::string& in)
+{
+    std::stringstream input (in);
+    std::string cmd;
+    input >> cmd;
+    if (!input) {
+        cmd_echo(client,msg,"gard: erwarte anweisung");
+        return;
+    }
+    if (cmd=="watch")
+    {
+        std::map<VirtualDB::Entry,int> active_users;
+        int sum = 0;
+        for (Client& cli: data->clients) {
+            if (cli.endpoint.status() == h2rfp::EndpointStatus::connected)
+            {
+                sum++;
+                VirtualDB::Entry entry = cli.user;
+                if (active_users.count(entry)==0)
+                    active_users[entry] = 1;
+                else
+                    active_users[entry]++;
+            }
+        }
+        std::stringstream answer;
+        answer << active_users.size() << " users mit " << sum << " clients verbunden";
+        for (auto& item: active_users)
+        {
+            Database::Cluster cli_user = item.first;
+            if (cli_user.is_null())
+                answer << "\n" << item.second << "x not logged in";
+            else
+                answer << "\nid " << cli_user.index() << " (" << cli_user["name"].get<std::string>() << ") connected " << item.second << "x";
+        }
+        cmd_echo(client,msg,answer.str());
+        return;
+    }
+
 }
