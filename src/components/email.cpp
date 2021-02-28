@@ -10,6 +10,7 @@ using namespace network;
 TokenEmail::TokenEmail():
     socket("new.phlhg.ch",443)
 {
+    // TODO socket timeoutoptionen
     log.prefix = "registrierungs-email: ";
     socket.log.parent = &log;
 }
@@ -85,7 +86,7 @@ void TokenEmail::send()
     }
 
     std::stringstream httpreq;
-    httpreq << "GET /email.php HTTP/1.1\n";
+    httpreq << "GET /email.php HTTP/1.1\n"; // TODO neue adresse
     httpreq << "Host: new.phlhg.ch\n";
     httpreq << "Connection: close\n";
     httpreq << "Content-Length: " << httpbody.str().size() << "\n";

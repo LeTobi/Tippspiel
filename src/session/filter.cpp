@@ -44,3 +44,17 @@ void suggest_players(Client& client, h2rfp::Message msg)
     out.put_child("data",names);
     return_result(client,msg,out);
 }
+
+void suggest_locations(Client& client, h2rfp::Message msg)
+{
+    h2rfp::JSObject out = make_result();
+    h2rfp::JSObject list;
+    h2rfp::JSObject item;
+    for(auto loc: data->database.list("Location")) {
+        item.put_value(loc["name"].get<std::string>());
+        list.push_back(std::make_pair("",item));
+    }
+    out.put_child("data",list);
+    return_result(client,msg,out);
+    return;
+}

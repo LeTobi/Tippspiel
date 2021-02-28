@@ -16,6 +16,7 @@ type User
 
 type Group
     User creator
+    User owner
     int createdAt
     char 100 name
     char 100 token
@@ -30,9 +31,9 @@ type Player
 type Team
     User creator
     int createdAt
+    Event event
     char 100 name
     char 10 short
-    Game [] games
     Player [] players
 
 type Location
@@ -48,6 +49,7 @@ type Event
     char 256 description
     int deadline
     int eventStatus
+    Team [] teams
     Game [] games
     EventTipp [] tipps
     Team winner

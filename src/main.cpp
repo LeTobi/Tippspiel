@@ -3,6 +3,7 @@
 #include "session/utils.h"
 #include "session/filter.h"
 #include "manipulation/game.h"
+#include "manipulation/group.h"
 #include <thread>
 
 using namespace tobilib;
@@ -42,12 +43,16 @@ void client_message(Client& client, h2rfp::Message msg)
         serve_data(client, msg);
     else if (msg.name == "hotGames")
         filter_hot_games(client, msg);
+    else if (msg.name == "suggest_locations")
+        suggest_locations(client, msg);
     else if (msg.name == "suggest_players")
         suggest_players(client,msg);
     else if (msg.name == "createPlayer")
         create_player(client,msg);
     else if (msg.name == "makeTipp")
         make_tipp(client,msg);
+    else if (msg.name == "createGame")
+        create_game(client,msg);
     else if (msg.name == "reportGame")
         report_game(client,msg);
     else if (msg.name == "console")
@@ -59,7 +64,7 @@ void client_message(Client& client, h2rfp::Message msg)
 void client_inactive(Client& client)
 {
     if (client.pong.is_requested()) {
-        //client.endpoint.close();
+        client.endpoint.close();
     } else {
         client.pong = client.endpoint.request("Ping");
     }

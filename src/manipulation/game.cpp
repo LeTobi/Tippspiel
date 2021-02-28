@@ -1,5 +1,6 @@
 #include "game.h"
 #include "../session/utils.h"
+#include "utils.h"
 
 Database::Cluster get_tipp(Database::Cluster user, Database::Cluster game)
 {
@@ -34,10 +35,11 @@ void create_player(Client& client, h2rfp::Message msg)
         return_client_error(client,msg,"Das Team ist unbekannt");
         return;
     }
-    if (name.size() < 5) {
+    if (name.size() < 4) {
         h2rfp::JSObject result = make_user_error(ERROR_INVALID_NAME);
         result.put("data.name",name);
         return_result(client,msg,result);
+        return;
     }
     
     FlagRequest lock = data->database.begin_critical_operation();
@@ -79,6 +81,10 @@ void make_tipp(Client& client, h2rfp::Message msg)
         return_client_error(client,msg,"Unbekanntes Spiel");
         return;
     }
+    if (game["teams"][0]->is_null() || game["teams"][1]->is_null()) {
+        return_client_error(client,msg,"Die Teams für dieses Spiel sind noch nicht bestimmt");
+        return;
+    }
     Database::Cluster winner = data->database.list("Team")[winnerid];
     if (winnerid!=0 && winner.is_null()) {
         return_client_error(client,msg,"Team (winner) nicht in der Datenbank");
@@ -99,7 +105,146 @@ void make_tipp(Client& client, h2rfp::Message msg)
     
     // update tipp nicht nötig, da nicht sichtbar
     
-    return_result(client,msg, make_result());
+    h2rfp::JSObject answer = make_result();
+    answer.put("data.id",tipp.index());
+    return_result(client,msg, answer);
+}
+
+void create_game(Client& client, h2rfp::Message msg)
+{
+    if (!check_login(client,msg) ||
+        !check_permission(client,msg,"perm_gameAnnounce") ||
+        !check_parameter(client,msg,"location") ||
+        !check_parameter(client,msg,"name") ||
+        !check_parameter(client,msg,"stream") ||
+        !check_parameter(client,msg,"event") ||
+        !check_parameter(client,msg,"team1") ||
+        !check_parameter(client,msg,"team2"))
+        return;
+
+    unsigned int team1id = msg.data.get("team1",0);
+    unsigned int team2id = msg.data.get("team2",0);
+    unsigned int gameid = msg.data.get("id",0);
+    unsigned int previous1id = msg.data.get("previous1",0);
+    unsigned int previous2id = msg.data.get("previous2",0);
+
+    Database::Cluster event = data->database.list("Event")[msg.data.get("event",0)];
+    Database::Cluster team1 = data->database.list("Team")[team1id];
+    Database::Cluster team2 = data->database.list("Team")[team2id];
+    Database::Cluster previous1 = data->database.list("Game")[previous1id];
+    Database::Cluster previous2 = data->database.list("Game")[previous2id];
+
+    if (event.is_null())
+    {
+        return_client_error(client,msg,"Das Event existiert nicht");
+        return;
+    }
+    if (team1id!=0) {
+        if (team1.is_null()) {
+            return_client_error(client,msg,"team1 existiert nicht");
+            return;
+        }
+        if (*team1["event"] != event) {
+            return_client_error(client,msg,"Das Team1 nimmt nicht an diesem Event teil");
+            return;
+        }
+    }
+    if (team2id!=0) {
+        if (team2.is_null()) {
+            return_client_error(client,msg,"team2 existiert nicht");
+            return;
+        }
+        if (*team2["event"] != event) {
+            return_client_error(client,msg,"Das Team2 nimmt nicht an diesem Event teil");
+            return;
+        }
+    }
+    if (previous1id != 0) {
+        if (previous1.is_null()) {
+            return_client_error(client,msg,"previous1 existiert nicht");
+            return;
+        }
+        if (*previous1["event"] != event) {
+            return_client_error(client,msg,"Die Vorstufe1 gehört nicht zum selben Anlass");
+            return;
+        }
+        if (!previous1["nextStage"]->is_null() && previous1["nextStage"]->index()!=gameid) {
+            return_client_error(client,msg,"prevous1 wird bereits als vorstufe verwendet");
+            return;
+        }
+    }
+    if (previous2id != 0) {
+        if (previous2.is_null()) {
+            return_client_error(client,msg,"previous2 existiert nicht");
+            return;
+        }
+        if (*previous2["event"] != event) {
+            return_client_error(client,msg,"Die Vorstufe2 gehört nicht zum selben Anlass");
+            return;
+        }
+        if (!previous2["nextStage"]->is_null() && previous2["nextStage"]->index()!=gameid) {
+            return_client_error(client,msg,"prevous2 wird bereits als vorstufe verwendet");
+            return;
+        }
+    }
+    
+    if (previous1id * team1id != 0) {
+        return_client_error(client,msg,"Team1 wird bereits durch previous1 gesteuert");
+        return;
+    }
+    if (previous2id * team2id != 0) {
+        return_client_error(client,msg,"Team2 wird bereits durch previous2 gesteuert");
+        return;
+    }
+    
+    Database::Cluster game;
+    if (gameid != 0)
+    {
+        game = data->database.list("Game")[gameid];
+        if (game.is_null()) {
+            return_client_error(client,msg,"Das Spiel existiert nicht");
+            return;
+        }
+        if (game["gameStatus"].get<int>() == GSTATUS_ENDED) {
+            return_client_error(client,msg,"Dieses Spiel ist beendet und kann nicht bearbeitet werden.");
+            return;
+        }
+        if (game["tipps"].begin() != game["tipps"].end()) {
+            return_client_error(client,msg,"Auf dieses Spiel wurde schon getippt. Es kann nicht mehr bearbeitet werden");
+            return;
+        }
+    }
+
+    FlagRequest lock = data->database.begin_critical_operation();
+        if (game.is_null()) {
+            game = data->database.list("Game").emplace();
+            game["creator"].set( client.user );
+            game["createdAt"].set( get_time() );
+        }
+        game["start"].set( msg.data.get("time",0) );
+        game["location"].set( get_location(client.user, msg.data.get("location","")) );
+        game["name"].set( msg.data.get("name","") );
+        game["stream"].set( msg.data.get("stream","") );
+        if (game["event"]->is_null()) {
+            game["event"].set( event );
+            event["games"].emplace().set( game );
+        }
+        game["phase"].set( GAMEPHASE_NORMAL );
+        game["teams"][0].set( team1 );
+        game["teams"][1].set( team2 );
+        game["previousStage"][0].set( previous1 );
+        game["previousStage"][1].set( previous2 );
+        previous1["nextStage"].set( game );
+        previous2["nextStage"].set( game );
+    data->database.end_critical_operation(lock);
+
+    data->virtualdb.update(game, VirtualDB::WAIT_SHORT);
+    data->virtualdb.update(event, VirtualDB::WAIT_SHORT);
+
+    h2rfp::JSObject answer = make_result();
+    answer.put("data.id", game.index());
+    return_result(client,msg,answer);
+    return;
 }
 
 void report_game(Client& client, h2rfp::Message msg)
@@ -114,6 +259,9 @@ void report_game(Client& client, h2rfp::Message msg)
         !check_parameter(client,msg,"scorers") )
         return;
     
+    return_server_error(client,msg,"Diese Funktion ist nicht fertig implementiert");
+    return;
+
     Database::Cluster game = data->database.list("Game")[msg.data.get("game",0)];
     if (game.is_null()) {
         return_client_error(client,msg,"Das Spiel existiert nicht");

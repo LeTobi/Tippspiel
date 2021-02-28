@@ -233,6 +233,7 @@ h2rfp::JSObject VirtualDB::data_group(Database::Cluster group)
         return out;
     out.put("id",group.index());
     out.put("name",group["name"].get<std::string>());
+    out.put("owner",group["owner"]->index());
     h2rfp::JSObject members;
     for (auto member: group["users"]) {
         h2rfp::JSObject item;
@@ -262,18 +263,11 @@ h2rfp::JSObject VirtualDB::data_team(Database::Cluster team)
     out.put("id",team.index());
     out.put("name",team["name"].get<std::string>());
     out.put("short", team["short"].get<std::string>());
+    out.put("event", team["event"]->index());
     h2rfp::JSObject list;
-    for (auto game: team["games"])
-    {
-        h2rfp::JSObject item;
-        item.put_value(game->index());
-        list.push_back(std::make_pair("",item));
-    }
-    out.put_child("games",list);
-    list.clear();
+    h2rfp::JSObject item;
     for (auto player: team["players"])
     {
-        h2rfp::JSObject item;
         item.put_value(player->index());
         list.push_back(std::make_pair("",item));
     }
@@ -292,17 +286,23 @@ h2rfp::JSObject VirtualDB::data_event(Database::Cluster event)
     out.put("deadline", event["deadline"].get<int>());
     out.put("status",event["eventStatus"].get<int>());
     h2rfp::JSObject list;
+    h2rfp::JSObject item;
     for (auto game: event["games"])
     {
-        h2rfp::JSObject item;
         item.put_value(game->index());
         list.push_back(std::make_pair("",item));
     }
     out.put_child("games",list);
     list.clear();
+    for (auto team: event["teams"])
+    {
+        item.put_value(team->index());
+        list.push_back(std::make_pair("",item));
+    }
+    out.put_child("teams",list);
+    list.clear();
     for (auto tipp: event["tipps"])
     {
-        h2rfp::JSObject item;
         item.put_value(tipp->index());
         list.push_back(std::make_pair("",item));
     }

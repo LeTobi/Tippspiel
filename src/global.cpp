@@ -18,11 +18,11 @@ GlobalData::GlobalData(): clients(100), database("../../data/")
     {
         clients[i].endpoint.log.prefix = std::string("endpoint ")+std::to_string(i)+": ";
         clients[i].endpoint.options.handshake_timeout = 5;
-        //clients[i].endpoint.options.read_timeout      = 15;
-        clients[i].endpoint.options.inactive_warning  = 10;
+        clients[i].endpoint.options.read_timeout      = 10;
+        clients[i].endpoint.options.inactive_warning  = 5;
         clients[i].endpoint.options.send_timeout      = 0;
         clients[i].endpoint.options.connect_timeout   = 0;
-        clients[i].endpoint.options.close_timeout     = 5;
+        clients[i].endpoint.options.close_timeout     = 2;
         clients[i].endpoint.connect();
     }
     database.log.parent = &log;
