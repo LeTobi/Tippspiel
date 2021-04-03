@@ -7,6 +7,9 @@
 #include <set>
 #include "time.h"
 
+// VirtualDB speichert die Datenbank im Client-JSON-Format ab. Cache-Funktionalität
+// Alle öffentlichen Updates müssen hier mit update(entry,time) registriert werden!
+// VirtualDB bearbeitet nur öffentlich zugängliche Daten.
 class VirtualDB {
 public:
     struct Entry {

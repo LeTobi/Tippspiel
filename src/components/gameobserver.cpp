@@ -47,12 +47,12 @@ std::vector<GameObserver::Game> GameObserver::get_finished()
     std::vector<Game> out;
     for (int i=0;i<5;i++)
     {
+        --next;
         if (next==timeline.end())
             break;
         out.push_back(next->game);
         if (next==timeline.begin())
             break;
-        --next;
     }
     return out;
 }
@@ -82,11 +82,11 @@ void GameObserver::tick()
     Time now = get_time();
     if (next_start.starttime > 0 && next_start.starttime <= now) {
         // TODO sonstwasnoch
-        data->virtualdb.update(next_start.game);
+        data->virtualdb.update(next_start.game, VirtualDB::WAIT_NOT);
     }
     if (next_end.endtime > 0 && next_end.endtime <= now) {
         // TODO sonstwasnoch
-        data->virtualdb.update(next_end.game);
+        data->virtualdb.update(next_end.game, VirtualDB::WAIT_NOT);
     }
 }
 

@@ -17,7 +17,9 @@ public:
     std::vector<Game> get_upcoming();
     std::vector<Game> get_finished();
 
+    // aufgerufen von VirtualDB
     void update(Game);
+    
     void tick();
 
 private:

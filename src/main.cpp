@@ -7,24 +7,6 @@
 #include <thread>
 
 using namespace tobilib;
-using namespace network;
-
-bool init()
-{
-    ssl_client_ctx.add_verify_path("/etc/ssl/certs");
-    ssl_server_init("/root/ssl/wetterfrosch.pem");
-    data = new GlobalData();
-    
-    data->database.init();
-    data->database.open();
-
-    if (!data->database.is_good())
-        return false;
-
-    data->observer.setup();
-
-    return true;
-}
 
 void client_connect(Client& client)
 {
@@ -33,6 +15,11 @@ void client_connect(Client& client)
 
 void client_message(Client& client, h2rfp::Message msg)
 {
+    if (client.user.is_null())
+        data->log << "Anonyme Anfrage " << msg.name << std::endl;
+    else
+        data->log << "Anfrage von " << client.user["name"].get<std::string>() << ": " << msg.name << std::endl;
+
     if (msg.name == "signup")
         signup(client, msg);
     else if (msg.name == "signin")
@@ -129,28 +116,43 @@ void distribute_update(const VirtualDB::Update& update)
 
 int main()
 {
-    if (!init())
-        return 0;
-    std::cout << "init complete" << std::endl;
+    data = new GlobalData();
 
-    while (true)
-    {
-        std::this_thread::yield();
-        for (Client& cli: data->clients)
-            client_tick(cli);
+    try {
 
-        data->emails.tick();
-        data->virtualdb.tick();
-        data->observer.tick();
-        while (!data->virtualdb.updates.empty())
-            distribute_update(data->virtualdb.updates.next());
+        data->init();
+        data->log << "Server wurde gestartet" << std::endl;
 
-        if (!data->database.is_good())
+        while (true)
         {
-            data->log << "Programm beendet wegen fehler in der Datenbank" << std::endl;
-            break;
+            std::this_thread::yield();
+            for (Client& cli: data->clients)
+                client_tick(cli);
+
+            data->emails.tick();
+            data->virtualdb.tick();
+            data->observer.tick();
+            while (!data->virtualdb.updates.empty())
+                distribute_update(data->virtualdb.updates.next());
+
+            if (!data->database.is_good())
+            {
+                data->log << "Programm beendet wegen fehler in der Datenbank" << std::endl;
+                break;
+            }
         }
+
+    }
+    catch(Exception& err)
+    {
+        data->log.print_time=false;
+        data->log << err.what() << std::endl;
+    }
+    catch (std::exception& err)
+    {
+        data->log << err.what() << std::endl;
     }
 
+    delete data;
     return 0;
 }

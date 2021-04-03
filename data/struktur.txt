@@ -8,6 +8,7 @@ type User
     EventTipp [] eventTipps
     Group [] groups
     int points
+    User invitor
     bool perm_eventAnnounce
     bool perm_eventReport
     bool perm_gameAnnounce

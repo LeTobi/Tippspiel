@@ -3,6 +3,7 @@
 
 #include <tobilib/ssl/h2rfp.h>
 #include <tobilib/database/database.h>
+#include <fstream>
 #include "enums.h"
 #include "components/email.h"
 #include "components/virtualdb.h"
@@ -21,18 +22,21 @@ public:
 
     h2rfp::WSS_Endpoint endpoint;
     Database::Cluster user;
-    unsigned int emailtask = 0;
+    Task emailtask = 0;
     std::vector<Update> updates;
     h2rfp::Response pong;
     
-    static network::Acceptor acceptor;
+    static network::Acceptor* acceptor;
 };
 
 class GlobalData{
 public:
     GlobalData();
+    void init();
+    ~GlobalData();
 
     Logger log;
+    std::fstream logfile;
     Database database;
     VirtualDB virtualdb;
     TokenEmail emails;
