@@ -36,7 +36,8 @@ enum ErrCode {
     ERROR_EMAIL_TAKEN = 2, // {email}
     ERROR_USERNAME_TAKEN = 3, // {name}
     ERROR_LOGIN_DENIED = 4, 
-    ERROR_INVALID_NAME = 5 // {name}
+    ERROR_INVALID_NAME = 5, // {name}
+    ERROR_GAMETIPPS_LOCKED = 6
 };
 
 #endif

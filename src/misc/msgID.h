@@ -3,6 +3,13 @@
 
 #include <tobilib/database/database.h>
 
+// identifiziert Daten von Filtern
+// Daten die nicht im Datei-Speicher vorhanden sind
+enum class FilterID {
+    currentGames // timeline_game
+};
+
+// identifiziert die Art von server-internen Nachrichtenpaketen
 enum class MsgType {
     none,
     user,
@@ -13,9 +20,12 @@ enum class MsgType {
     game,
     eventTipp,
     gameTipp,
-    hotGames
+    locations,
+    hotGames,
+    gamePlayers
 };
 
+// identifiziert server-interne Nachrichtenpakete
 struct MsgID {
     MsgType type = MsgType::none;
     unsigned int arg0 = 0;

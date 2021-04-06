@@ -50,3 +50,22 @@ JSObject msg_creation::detail::game_make_msg(Session& session, const MsgID& id)
     out.put("short2", game["teams"][1]["short"].get<std::string>());
     return out;
 }
+
+bool msg_creation::detail::suggest_players_individual(Session&, const MsgID&)
+{
+    return false;
+}
+
+JSObject msg_creation::detail::suggest_players(Session& session, const MsgID& msgid)
+{
+    Database::Cluster game = maindata->storage.list("Game")[msgid.arg0];
+    h2rfp::JSObject names;
+    h2rfp::JSObject item;
+    for (auto team: game["teams"])
+        for (auto player: team["players"])
+        {
+            item.put_value(player->index());
+            names.push_back(std::make_pair("",item));
+        }
+    return names;
+}

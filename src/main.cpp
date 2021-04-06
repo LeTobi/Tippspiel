@@ -22,6 +22,7 @@ int main(int argc, const char** args)
 
         maindata->init(port);
         maindata->log << "Server wurde gestartet" << std::endl;
+        maindata->log << "Port: " << port << std::endl;
 
         while (true)
         {

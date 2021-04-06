@@ -1,8 +1,11 @@
 #include "msgTracking.h"
 #include "main-data.h"
+#include "filters/all.h"
 
 void global_message_update(tobilib::Database::Cluster cluster, Time urgency)
 {
+    filters::update(cluster);
+    
     if (cluster.type().name == "User") {
         MsgID id (MsgType::user,cluster.index());
         maindata->updateTracker.update(id,urgency);

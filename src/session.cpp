@@ -69,17 +69,17 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::sync(*this, msg);
     else if (msg.name == "hotGames")
         msg_handler::hot_games(*this, msg);
-    /*else if (msg.name == "suggest_locations")
-        suggest_locations(client, msg);
+    else if (msg.name == "suggest_locations")
+        msg_handler::suggest_locations(*this, msg);
     else if (msg.name == "suggest_players")
-        suggest_players(client,msg);*/
+        msg_handler::suggest_players(*this,msg); // brauchts das?
     else if (msg.name == "createPlayer")
         msg_handler::create_player(*this,msg);
-    /*else if (msg.name == "makeTipp")
-        make_tipp(client,msg);
+    else if (msg.name == "makeTipp")
+        msg_handler::game_tipp(*this,msg);
     else if (msg.name == "createGame")
-        create_game(client,msg);
-    else if (msg.name == "reportGame")
+        msg_handler::game_announce(*this,msg);
+    /*else if (msg.name == "reportGame")
         report_game(client,msg);
     else if (msg.name == "console")
         console_input(client, msg);*/
