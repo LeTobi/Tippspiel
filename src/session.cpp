@@ -80,9 +80,9 @@ void Session::on_message(h2rfp::Message& msg)
     else if (msg.name == "createGame")
         msg_handler::game_announce(*this,msg);
     /*else if (msg.name == "reportGame")
-        report_game(client,msg);
+        report_game(client,msg);*/
     else if (msg.name == "console")
-        console_input(client, msg);*/
+        msg_handler::console_input(*this, msg);
     else {
         log << "Diese Anfrage ist nicht teil der API" << std::endl;
         return_client_error(*this,msg,"Diese Funktion ist nicht teil der API");

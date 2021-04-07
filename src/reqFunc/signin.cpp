@@ -26,18 +26,18 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
         return;
     }
 
+    session.log << session.user["name"].get<std::string>() << " ist nun eingeloggt" << std::endl;
     session.user["lastupdate"].set( get_time() );
 
     h2rfp::JSObject answer = make_result();
     int lastknown = session.user["lastupdate"].get<int>();
-    /* int lastsupport = data->virtualdb.get_history_support();
+    int lastsupport = maindata->updateTracker.horizon();
     if (is_retry && lastknown > lastsupport) {
         answer.put("data.upToDate",true);
-        answer.put_child("data.updates",data->virtualdb.get_history(lastknown));
+        answer.put_child("data.updates",maindata->updateTracker.get_history(lastknown));
     } else {
         answer.put("data.upToDate",false);
-    } */
-    // TODO
+    }
     answer.put("data.upToDate",false);
     
     return_result(session,msg,answer);
