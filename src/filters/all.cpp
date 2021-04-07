@@ -1,19 +1,33 @@
 #include "all.h"
-#include "../main-data.h"
+#include "gameTimeline.h"
 
 using namespace tobilib;
 
-void filters::tick_all()
+DatabaseFilters::DatabaseFilters():
+    timeline(*new GameTimeline())
+{ }
+
+DatabaseFilters::~DatabaseFilters()
 {
-    maindata->gametimeline.tick();
+    delete &timeline;
 }
 
-void filters::update(Database::Cluster cluster)
+void DatabaseFilters::init()
 {
-    
+    timeline.init();
 }
 
-void filters::remove(Database::Cluster cluster)
+void DatabaseFilters::tick()
 {
+    timeline.tick();
+}
 
+void DatabaseFilters::update(Database::Cluster cluster)
+{
+    timeline.update(cluster);
+}
+
+void DatabaseFilters::remove(Database::Cluster cluster)
+{
+    timeline.remove(cluster);
 }

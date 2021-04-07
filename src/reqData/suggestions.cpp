@@ -1,6 +1,7 @@
 #include "suggestions.h"
 #include "../misc/response_util.h"
 #include "../main-data.h"
+#include "../msgCache.h"
 
 using namespace tobilib;
 using namespace h2rfp;

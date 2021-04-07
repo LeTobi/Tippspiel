@@ -5,9 +5,9 @@
 
 namespace data_edit {
 
-    std::string make_new_token(tobilib::Database::Cluster);
+    std::string make_new_token(tobilib::Database::Cluster user);
 
-    tobilib::Database::Cluster check_token(std::string);
+    tobilib::Database::Cluster check_token(const std::string&);
 
 }
 

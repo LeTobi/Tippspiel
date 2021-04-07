@@ -3,7 +3,8 @@
 
 #include <tobilib/ssl/h2rfp.h>
 #include <tobilib/database/database.h>
-#include "sessionTasks/all.h"
+
+class SessionTasks;
 
 class Session {
 public:
@@ -17,9 +18,11 @@ public:
     tobilib::h2rfp::WSS_Endpoint client;
     tobilib::Logger log;
     tobilib::Database::Cluster user;
-    SessionTasks tasks;
+    SessionTasks& tasks;
 
     Session();
+    Session(const Session&) = delete;
+    ~Session();
     void tick();
 
 private:

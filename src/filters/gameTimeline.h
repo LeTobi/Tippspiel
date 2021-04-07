@@ -7,8 +7,6 @@
 #include <set>
 #include <vector>
 
-namespace filters {
-
 class GameTimeline
 {
 public:
@@ -38,7 +36,7 @@ public:
 
     std::map<tobilib::Database::Cluster,Game*> games;
     Iterator future_horizon;
-    Iterator most_current;
+    Iterator next_game;
     Iterator past_horizon;
     Timeline timeline;
 
@@ -48,6 +46,5 @@ private:
 
 }; // class GameTimeLine
 
-} // namespace filters
 
 #endif

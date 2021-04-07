@@ -64,23 +64,42 @@ h2rfp::JSObject make_user_error(int errtype)
 
 void return_result(Session& session, h2rfp::Message msg, h2rfp::JSObject data)
 {
-    session.client.respond(msg.id,data);
+    return_result(session,msg.id,data);
+}
+
+void return_result(Session& session, unsigned int msgid, h2rfp::JSObject data)
+{
+    session.client.respond(msgid,data);
 }
 
 void return_client_error(Session& session, h2rfp::Message msg, const std::string& info)
 {
+    return_client_error(session,msg,info);
+}
+
+void return_client_error(Session& session, unsigned int msgid, const std::string& info)
+{
+    if (!session.client.is_connected())
+        return;
     h2rfp::JSObject out;
     out.put("state",RESULT_CLIENT_ERROR);
     out.put("error",ERROR_NONE);
     out.put("data.info",info);
-    session.client.respond(msg.id,out);
+    session.client.respond(msgid,out);
 }
 
 void return_server_error(Session& session, h2rfp::Message msg, const std::string& info)
 {
+    return_server_error(session,msg.id,info);
+}
+
+void return_server_error(Session& session, unsigned int msgid, const std::string& info)
+{
+    if (!session.client.is_connected())
+        return;
     h2rfp::JSObject out;
     out.put("state",RESULT_SERVER_ERROR);
     out.put("error",ERROR_NONE);
     out.put("data.info",info);
-    session.client.respond(msg.id,out);
+    session.client.respond(msgid,out);
 }

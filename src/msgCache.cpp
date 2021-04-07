@@ -1,5 +1,6 @@
 #include "msgCache.h"
 #include "msgCreation/all.h"
+#include "session.h"
 
 using namespace tobilib;
 using namespace h2rfp;

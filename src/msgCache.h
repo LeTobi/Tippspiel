@@ -4,7 +4,8 @@
 #include <vector>
 #include <tobilib/protocols/h2rfp.h>
 #include "misc/msgID.h"
-#include "session.h"
+
+class Session;
 
 class MsgCache
 {

@@ -1,5 +1,7 @@
 #include "updateTracker.h"
 #include "main-data.h"
+#include "sessionTasks/all.h"
+#include "sessionTasks/update.h"
 #include <map>
 
 using namespace tobilib;

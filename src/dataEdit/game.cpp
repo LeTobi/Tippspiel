@@ -66,6 +66,9 @@ Database::Cluster data_edit::get_location(
     loc["creator"].set( user );
     loc["createdAt"].set( get_time() );
     loc["name"].set( name );
+
+    global_message_update(loc, WAIT_LONG);
+
     return loc;
 }
 
@@ -132,4 +135,17 @@ void data_edit::announce_game(
         global_message_update(old_prev_2,WAIT_SHORT);
         global_message_update(previousStage2,WAIT_SHORT);
     }
+}
+
+void data_edit::set_game_status(Database::Cluster game, int status)
+{
+    game["gameStatus"].set( status );
+    global_message_update(game,WAIT_NOT);
+}
+
+void data_edit::set_game_phase(Database::Cluster game, int phase)
+{
+    game["phase"].set( phase );
+    game["gameStatus"].set( GSTATUS_RUNNING );
+    global_message_update(game,WAIT_NOT);
 }

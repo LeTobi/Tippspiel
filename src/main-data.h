@@ -7,25 +7,33 @@
 #include <fstream>
 
 #include "session.h"
-#include "msgCache.h"
-#include "updateTracker.h"
-#include "tasks/all.h"
-#include "filters/all.h"
-#include "actions/all.h"
 
-class MainData{
+class MsgCache;
+class UpdateTracker;
+class DatabaseFilters;
+class ServerTasks;
+class ServerActions;
+
+class MainData
+{
 public:
-    void init(int);
+    MainData();
+    MainData(const MainData&) = delete;
     ~MainData();
+
+    void init(int);
+    void tick();
 
     tobilib::Logger log;
     tobilib::Database storage;
     std::vector<Session> sessions;
-    MsgCache cache;
-    UpdateTracker updateTracker;
 
-    tasks::Registration registration;
-    filters::GameTimeline gametimeline;
+    MsgCache& cache;
+    UpdateTracker& updateTracker;
+    DatabaseFilters& filters;
+    ServerTasks& tasks;
+    ServerActions& actions;
+    
 
     tobilib::network::Acceptor* acceptor = nullptr; // only use in Session constructor
 private:

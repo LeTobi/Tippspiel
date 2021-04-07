@@ -3,10 +3,14 @@
 #include "reqData/all.h"
 #include "reqFunc/all.h"
 #include "misc/response_util.h"
+#include "sessionTasks/all.h"
+#include "sessionTasks/pong.h"
 
 using namespace tobilib;
 
-Session::Session(): client(*maindata->acceptor), tasks(this)
+Session::Session():
+    client(*maindata->acceptor),
+    tasks(*new SessionTasks(this))
 { 
     client.log.parent = &log;
     client.options.handshake_timeout = 5;
@@ -18,11 +22,16 @@ Session::Session(): client(*maindata->acceptor), tasks(this)
     client.connect();
 }
 
+Session::~Session()
+{
+    delete &tasks;
+}
+
 void Session::tick()
 {
     client.tick();
     if (status != Status::inactive)
-        tasks.tick_all();
+        tasks.tick();
 
     while (!client.events.empty()) {
         h2rfp::EndpointEvent ev = std::move(client.events.next());
@@ -39,7 +48,7 @@ void Session::tick()
     if (client.status() == h2rfp::EndpointStatus::connected) {
         status = Status::active;
     }
-    else if (tasks.any_pending()) {
+    else if (tasks.pending()) {
         status = Status::cleanup;
     }
     else if (client.status()==h2rfp::EndpointStatus::closed) {
@@ -59,9 +68,11 @@ void Session::on_message(h2rfp::Message& msg)
 {
     log << "Anfrage: " << msg.name << std::endl;
 
-    /*if (msg.name == "signup")
-        signup(client, msg);
-    else*/ if (msg.name == "signin")
+    if (msg.name == "signup")
+        msg_handler::make_new_user(*this, msg);
+    else if (msg.name == "restoreToken")
+        msg_handler::restore_token(*this,msg);
+    else if (msg.name == "signin")
         msg_handler::signin(*this, msg);
     else if (msg.name == "me")
         msg_handler::inform_identity(*this, msg);
@@ -79,6 +90,8 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::game_tipp(*this,msg);
     else if (msg.name == "createGame")
         msg_handler::game_announce(*this,msg);
+    else if (msg.name == "nextPhase")
+        msg_handler::game_shift_phase(*this,msg);
     /*else if (msg.name == "reportGame")
         report_game(client,msg);*/
     else if (msg.name == "console")

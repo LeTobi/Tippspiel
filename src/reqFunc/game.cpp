@@ -188,3 +188,22 @@ void msg_handler::game_announce(Session& session, Message& msg)
     return_result(session,msg,answer);
     return;
 }
+
+void msg_handler::game_shift_phase(Session& session, Message& msg)
+{
+    if (!check_login(session,msg)
+        || !check_parameter(session,msg,"game"))
+        return;
+    
+    Database::Cluster game = maindata->storage.list("Game")[msg.data.get("game",0)];
+    int phase = game["phase"].get<int>();
+    if (game["gameStatus"].get<int>() != GSTATUS_PENDING || game["phase"].get<int>() >= GAMEPHASE_PENALTY)
+    {
+        return_client_error(session,msg,"Die Phase dieses Spiels kann gerade nicht bearbeitet werden.");
+        return;
+    }
+
+    data_edit::set_game_phase(game,++phase);
+
+    return_result(session,msg,make_result());
+}

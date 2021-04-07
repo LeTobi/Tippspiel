@@ -1,5 +1,6 @@
 type User
     int registerdate
+    int lastlogin
     int lastupdate
     char 50 email
     char 100 name

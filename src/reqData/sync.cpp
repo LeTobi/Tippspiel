@@ -2,6 +2,7 @@
 #include "../misc/response_util.h"
 #include "../misc/msgID.h"
 #include "../main-data.h"
+#include "../msgCache.h"
 #include <map>
 
 using namespace tobilib;

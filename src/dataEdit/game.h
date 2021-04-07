@@ -11,7 +11,7 @@ namespace data_edit
         tobilib::Database::Cluster game,
         bool force // erstellt den Tipp, falls er noch nicht existiert.
         );
-    
+
     void set_game_tipp(
         tobilib::Database::Cluster tipp,
         int bet1,
@@ -39,6 +39,9 @@ namespace data_edit
         tobilib::Database::Cluster previousStage1,
         tobilib::Database::Cluster previousStage2
         );
+
+    void set_game_status(tobilib::Database::Cluster game, int status);
+    void set_game_phase(tobilib::Database::Cluster game, int phase);
 
     //void report_game(Client&, h2rfp::Message);
 }

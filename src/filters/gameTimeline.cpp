@@ -1,8 +1,8 @@
-#include "timeline_game.h"
+#include "gameTimeline.h"
 #include "../main-data.h"
 #include "../msgTracking.h"
+#include "../misc/enums.h"
 
-using namespace filters;
 using namespace tobilib;
 
 GameTimeline::Game::Game(Database::Cluster cl)
@@ -14,7 +14,16 @@ GameTimeline::Game::Game(Database::Cluster cl)
 GameTimeline::Game::Game(Time t)
 {
     starttime = t;
-    endtime = starttime + 90*60;
+    endtime = starttime + (45 + 15 + 45) * 60;
+    switch (cluster["phase"].get<int>())
+    {
+    case GAMEPHASE_PENALTY:
+        endtime += (5 + 10) * 60;
+    case GAMEPHASE_OVERTIME:
+        endtime += (5 + 15 + 5 + 15) * 60;
+    case GAMEPHASE_NORMAL:
+        break;
+    }
 }
 
 void GameTimeline::Game::update()
@@ -53,7 +62,7 @@ void GameTimeline::init()
 void GameTimeline::tick()
 {
     Game now (get_time());
-    if (!TimeOrder()(&now,*most_current)) {
+    if (!TimeOrder()(&now,*next_game)) {
         global_message_update(FilterID::currentGames);
         set_indicators();
     }
@@ -88,9 +97,9 @@ void GameTimeline::remove(Database::Cluster cluster)
 void GameTimeline::set_indicators()
 {
     Game now (get_time());
-    most_current = timeline.upper_bound(&now);
-    future_horizon = most_current;
-    past_horizon = most_current;
+    next_game = timeline.upper_bound(&now);
+    future_horizon = next_game;
+    past_horizon = next_game;
     for (int i=0;i<5;i++)
         if (future_horizon!=timeline.end())
             ++future_horizon;

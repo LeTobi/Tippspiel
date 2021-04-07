@@ -2,6 +2,7 @@
 #include "../../misc/config.h"
 #include "../../misc/response_util.h"
 #include "../../main-data.h"
+#include "../../msgCache.h"
 #include <tobilib/database/manipulation/commands.h>
 #include <tobilib/database/manipulation/export.h>
 

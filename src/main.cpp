@@ -28,12 +28,7 @@ int main(int argc, const char** args)
         {
             std::this_thread::yield();
 
-            maindata->updateTracker.tick();
-            for (Session& cli: maindata->sessions)
-                cli.tick();
-            tasks::tick_all();
-            filters::tick_all();
-            actions::tick_all();
+            maindata->tick();
 
             if (!maindata->storage.is_good())
             {
@@ -41,7 +36,6 @@ int main(int argc, const char** args)
                 break;
             }
         }
-
     }
     catch(tobilib::Exception& err)
     {

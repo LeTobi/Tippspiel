@@ -3,7 +3,7 @@
 
 using namespace tobilib;
 
-Database::Cluster data_edit::check_token(std::string token)
+Database::Cluster data_edit::check_token(const std::string& token)
 {
     size_t pos = token.find('-');
     if (pos==std::string::npos)
@@ -38,7 +38,8 @@ std::string data_edit::make_new_token(Database::Cluster user)
         return "";
     std::random_device rd;
     std::string token = std::to_string(user.index()) + "-";
-    token+=adjectives[rd()%adjectives.size()];
-    token+=nouns[rd()%nouns.size()];
+    token += adjectives[rd()%adjectives.size()];
+    token += nouns[rd()%nouns.size()];
+    token += std::to_string(rd()%90 + 10);
     return token;
 }

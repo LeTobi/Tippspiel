@@ -1,7 +1,31 @@
 #include "main-data.h"
 #include <tobilib/ssl/network.h>
+#include "msgCache.h"
+#include "updateTracker.h"
+#include "tasks/all.h"
+#include "filters/all.h"
+#include "actions/all.h"
 
 using namespace tobilib;
+
+MainData::MainData():
+    cache(*new MsgCache()),
+    updateTracker(*new UpdateTracker()),
+    filters(*new DatabaseFilters),
+    tasks(*new ServerTasks()),
+    actions(*new ServerActions())
+{ }
+
+MainData::~MainData()
+{
+    delete &cache;
+    delete &updateTracker;
+    delete &tasks;
+    delete &filters;
+    delete &actions;
+    if (acceptor!=nullptr)
+        delete acceptor;
+}
 
 void MainData::init(int port) {
     updateTracker.log.parent = &log;
@@ -37,11 +61,17 @@ void MainData::init(int port) {
         sessions[i].log.parent = &log;
     }
 
-    gametimeline.init();
+    filters.init();
+    tasks.init();
+    actions.init();
 }
 
-MainData::~MainData()
+void MainData::tick()
 {
-    if (acceptor!=nullptr)
-        delete acceptor;
+    for (Session& sess: sessions)
+        sess.tick();
+    updateTracker.tick();
+    filters.tick();
+    tasks.tick();
+    actions.tick();
 }

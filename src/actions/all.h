@@ -1,10 +1,20 @@
 #ifndef TIPPSPIEL_ACTIONS_ALL_H
 #define TIPPSPIEL_ACTIONS_ALL_H
 
-namespace actions {
+class GameObserver;
 
-    void tick_all();
+class ServerActions
+{
+public:
+    ServerActions();
+    ServerActions(const ServerActions&) = delete;
+    ~ServerActions();
+
+    void init();
+    void tick();
     
-}
+    GameObserver& gameObserver;
+
+};
 
 #endif

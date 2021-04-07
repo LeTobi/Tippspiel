@@ -1,9 +1,11 @@
 #include "signin.h"
 #include "../main-data.h"
+#include "../updateTracker.h"
 #include "../misc/response_util.h"
 #include "../misc/enums.h"
 #include "../misc/time.h"
 #include "../dataEdit/token.h"
+#include "../dataEdit/user.h"
 
 using namespace tobilib;
 
@@ -11,6 +13,12 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
 {
     bool is_retry = msg.data.get("retry",false);
     std::string token = msg.data.get("token","");
+
+    if (!session.user.is_null())
+    {
+        return_result(session,msg,make_user_error(ERROR_ALREADY_LOGGED_IN));
+        return;
+    }
 
     if (token.empty())
     {
@@ -26,8 +34,8 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
         return;
     }
 
+    data_edit::set_user_last_login(session.user);
     session.log << session.user["name"].get<std::string>() << " ist nun eingeloggt" << std::endl;
-    session.user["lastupdate"].set( get_time() );
 
     h2rfp::JSObject answer = make_result();
     int lastknown = session.user["lastupdate"].get<int>();
@@ -39,6 +47,7 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
         answer.put("data.upToDate",false);
     }
     answer.put("data.upToDate",false);
+    data_edit::set_user_sync(session.user,get_time());
     
     return_result(session,msg,answer);
 }

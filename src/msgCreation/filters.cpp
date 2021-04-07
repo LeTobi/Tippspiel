@@ -1,18 +1,19 @@
 #include "filters.h"
 #include "../main-data.h"
+#include "../filters/all.h"
+#include "../filters/gameTimeline.h"
 
 using namespace tobilib;
 using namespace h2rfp;
-using namespace filters;
 
 bool msg_creation::detail::hot_games_individual(Session&, const MsgID&) {
     return false;
 }
 
 JSObject msg_creation::detail::hot_games(Session&, const MsgID&) {
-    GameTimeline::Iterator top = maindata->gametimeline.future_horizon;
-    GameTimeline::Iterator center = maindata->gametimeline.most_current;
-    GameTimeline::Iterator bottom = maindata->gametimeline.past_horizon; 
+    GameTimeline::Iterator top = maindata->filters.timeline.future_horizon;
+    GameTimeline::Iterator center = maindata->filters.timeline.next_game;
+    GameTimeline::Iterator bottom = maindata->filters.timeline.past_horizon; 
     h2rfp::JSObject uplist;
     h2rfp::JSObject overlist;
     h2rfp::JSObject item;

@@ -2,14 +2,24 @@
 #define TIPPSPIEL_FILTERS_ALL_H
 
 #include <tobilib/database/database.h>
-#include "timeline_game.h"
 
-namespace filters {
+class GameTimeline;
 
-    void tick_all();
+class DatabaseFilters
+{
+public:
+
+    DatabaseFilters();
+    DatabaseFilters(const DatabaseFilters&) = delete;
+    ~DatabaseFilters();
+
+    void init();
+    void tick();
     void update(tobilib::Database::Cluster);
     void remove(tobilib::Database::Cluster);
 
-}
+    GameTimeline& timeline;
+
+};
 
 #endif

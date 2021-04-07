@@ -21,9 +21,6 @@ Database::Cluster data_edit::create_player(
 
     maindata->log << "Spieler hinzugefügt: " << name << std::endl;
 
-    filters::update(player);
-    filters::update(team);
-
     global_message_update(player, WAIT_LONG);
     global_message_update(team, WAIT_LONG);
 

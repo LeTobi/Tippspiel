@@ -1,9 +1,9 @@
 #include "hotgames.h"
 #include "../main-data.h"
+#include "../msgCache.h"
 #include "../misc/response_util.h"
 
 using namespace tobilib;
-using namespace filters;
 using namespace h2rfp;
 
 void msg_handler::hot_games(Session& session, const tobilib::h2rfp::Message& msg)
