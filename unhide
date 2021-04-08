@@ -1,3 +1,2 @@
 #!/bin/sh
-find config/ -type f -exec git update-index --no-assume-unchanged '{}' \;
-find db-surgery/ -type f -exec git update-index --no-assume-unchanged '{}' \;
+git update-index --no-assume-unchanged $(git ls-files | tr '\n' ' ')
