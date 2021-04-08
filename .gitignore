@@ -1,4 +1,7 @@
 /src/build/**
 /data/**
 /config/**
+/db-surgery/manipulate.cpp
+/db-surgery/build/**
 !/data/struktur.txt
+/.vscode
