@@ -8,7 +8,6 @@ type User
     GameTipp [] gameTipps
     EventTipp [] eventTipps
     Group [] groups
-    int points
     User invitor
     bool perm_eventAnnounce
     bool perm_eventReport
@@ -54,6 +53,7 @@ type Event
     Team [] teams
     Game [] games
     EventTipp [] tipps
+    Rank [] ranks
     Team winner
     Player topscorer
 
@@ -64,6 +64,7 @@ type EventTipp
     Team winner
     Player topscorer
     int reward
+    Rank rank
 
 type Game
     User creator
@@ -92,3 +93,10 @@ type GameTipp
     Team winner
     Player topscorer
     int reward
+    Rank rank
+
+type Rank
+    Event event
+    User user
+    int points
+    int tippcount

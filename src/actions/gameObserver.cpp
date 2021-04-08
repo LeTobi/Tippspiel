@@ -4,6 +4,7 @@
 #include "../filters/gameTimeline.h"
 #include "../misc/enums.h"
 #include "../dataEdit/game.h"
+#include <cmath>
 
 void GameObserver::init()
 {
@@ -14,7 +15,7 @@ void GameObserver::tick()
 {
     GameTimeline::Iterator it = maindata->filters.timeline.next_game;
     Time now = get_time();
-    Time new_horizon = 0;
+    Time new_horizon = now;
     while (it != maindata->filters.timeline.timeline.begin()
         && (**it).starttime >= horizon)
     {
@@ -40,9 +41,9 @@ void GameObserver::tick()
         if (gamestate != GSTATUS_ENDED)
         {
             // Hier ist ist eine Aktivität
-            new_horizon = (**it).starttime;
+            new_horizon = std::min(new_horizon, (**it).starttime);
         }
-        it--;
+        --it;
     }
     horizon = new_horizon;
 }
