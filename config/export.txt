@@ -1,1 +1,1 @@
-/var/www/html/database/
+/var/www/html/

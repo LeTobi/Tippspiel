@@ -1,0 +1,5 @@
+#!/bin/sh
+git update-index --assume-unchanged db-surgery/manipulate.cpp
+find config/ -type f -exec git update-index --assume-unchanged '{}' \;
+echo versteckte dateien:
+git ls-files -v | grep ^h
