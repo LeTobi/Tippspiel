@@ -20,12 +20,17 @@ public:
         Time endtime;
     };
 
-    struct TimeOrder {
+    struct StartOrder {
+        bool operator()(const Game*, const Game*);
+    };
+    struct FinishOrder {
         bool operator()(const Game*, const Game*);
     };
 
-    using Timeline = std::set<Game*, TimeOrder>;
-    using Iterator = Timeline::iterator;
+    using Startlist = std::set<Game*, StartOrder>;
+    using Finishlist = std::set<Game*, FinishOrder>;
+    using StartIterator = Startlist::iterator;
+    using FinishIterator = Finishlist::iterator;
 
     ~GameTimeline();
 
@@ -35,13 +40,25 @@ public:
     void remove(tobilib::Database::Cluster);
 
     std::map<tobilib::Database::Cluster,Game*> games;
-    Iterator future_horizon;
-    Iterator next_game;
-    Iterator past_horizon;
-    Timeline timeline;
+    std::set<Game*> pending_games;
+    StartIterator upcoming_begin;
+    StartIterator upcoming_end;
+    FinishIterator running_begin;
+    FinishIterator running_end;
+    FinishIterator finished_begin;
+    FinishIterator finished_end;
+    
+    Startlist startlist;
+    Finishlist finishlist;
 
 private:
+    Game* end_of_ignore = nullptr;
 
+    bool hits_upcoming_horizon(const Game*, const Game*);
+    bool hits_finished_horizon(const Game*, const Game*);
+    bool has_started(const Game*, const Game*);
+    bool is_running(const Game*, const Game*);
+    bool has_finished(const Game*, const Game*);
     void set_indicators();
 
 }; // class GameTimeLine

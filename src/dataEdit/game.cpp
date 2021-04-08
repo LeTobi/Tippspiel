@@ -2,6 +2,7 @@
 #include "../main-data.h"
 #include "../msgTracking.h"
 #include "../misc/enums.h"
+#include "points.h"
 
 using namespace tobilib;
 
@@ -20,14 +21,19 @@ Database::Cluster data_edit::get_game_tipp(
     
     FlagRequest lock = maindata->storage.begin_critical_operation();
         Database::Cluster tipp = maindata->storage.list("GameTipp").emplace();
-        user["gameTipps"].emplace().set( tipp );
+        Database::Cluster rank = get_rank(user, *game["event"], true);
+        rank["tippcount"].set( rank["tippcount"].get<int>() + 1 );
+        game["tippcount"].set( game["tippcount"].get<int>() + 1 );
         game["tipps"].emplace().set( tipp );
+        rank["gametipps"].emplace().set( tipp );
         tipp["user"].set( user );
         tipp["game"].set( game );
+        tipp["rank"].set( rank );
     maindata->storage.end_critical_operation(lock);
 
     global_message_update(tipp, WAIT_LONG);
     global_message_update(user, WAIT_LONG);
+    global_message_update(rank, WAIT_LONG);
     global_message_update(game, WAIT_SHORT);
 
     return tipp;
@@ -147,5 +153,45 @@ void data_edit::set_game_phase(Database::Cluster game, int phase)
 {
     game["phase"].set( phase );
     game["gameStatus"].set( GSTATUS_RUNNING );
+    global_message_update(game,WAIT_NOT);
+}
+
+void data_edit::report_game(
+        tobilib::Database::Cluster game,
+        int phase,
+        int score1,
+        int score2,
+        int penalty1,
+        int penalty2,
+        const std::vector<tobilib::Database::Cluster>& scorers
+        )
+{
+    std::vector<int> rewards;
+    for (Database::Member tippptr: game["tipps"])
+    {
+        int reward = 5;
+
+        // todo reward ausrechnen
+
+        rewards.push_back(reward);
+    }
+
+    FlagRequest lock = maindata->storage.begin_critical_operation();
+        game["gameStatus"].set( GSTATUS_ENDED );
+        game["phase"].set( phase );
+        game["scores"][0].set( score1 );
+        game["scores"][1].set( score2 );
+        game["penalty"][0].set( penalty1 );
+        game["penalty"][1].set( penalty2 );
+        Database::Member db_scorers = game["scorers"];
+        while (db_scorers.begin() != db_scorers.end())
+            db_scorers.erase(db_scorers.begin());
+        for (tobilib::Database::Cluster scorer: scorers)
+            db_scorers.emplace().set( scorer );
+        auto rewardit = rewards.begin();
+        for (Database::Member tippptr: game["tipps"])
+            tipp_set_points(*tippptr,*(rewardit++));
+    maindata->storage.end_critical_operation(lock);
+
     global_message_update(game,WAIT_NOT);
 }

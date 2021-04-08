@@ -207,3 +207,47 @@ void msg_handler::game_shift_phase(Session& session, Message& msg)
 
     return_result(session,msg,make_result());
 }
+
+void msg_handler::game_report(Session& session, Message& msg)
+{
+    if (!check_login(session,msg) ||
+        !check_permission(session,msg,"perm_gameReport") ||
+        !check_parameter(session,msg,"game") ||
+        !check_parameter(session,msg,"phase") ||
+        !check_parameter(session,msg,"score1") ||
+        !check_parameter(session,msg,"score2") ||
+        !check_parameter(session,msg,"scorePenalty1") ||
+        !check_parameter(session,msg,"scorePenalty2") ||
+        !check_parameter(session,msg,"scorers") )
+        return;
+    
+    Database::Cluster game = maindata->storage.list("Game")[msg.data.get("game",0)];
+    if (game.is_null()) {
+        return_client_error(session,msg,"Das Spiel existiert nicht");
+        return;
+    }
+    if (game["gameStatus"].get<int>() < GSTATUS_PENDING) {
+        return_client_error(session,msg,"Dieses Spiel ist noch am laufen");
+        return;
+    }
+
+    int phase = msg.data.get("phase",0);
+    int score1 = msg.data.get("score1",0);
+    int score2 = msg.data.get("score2",0);
+    int penalty1 = msg.data.get("scorePenalty1",0);
+    int penalty2 = msg.data.get("scorePenalty2",0);
+    std::vector<Database::Cluster> scorers;
+
+    for (auto& item: msg.data.get_child("scorers")) {
+        Database::Cluster scorer = maindata->storage.list("Player")[item.second.get_value(0)];
+        if (scorer.is_null()) {
+            return_client_error(session,msg,"Ein Spieler ist unbekannt");
+            return;
+        }
+        scorers.push_back(scorer);
+    }
+
+    data_edit::report_game(game,phase,score1,score2,penalty1,penalty2,scorers);
+
+    return_result(session,msg,make_result());
+}

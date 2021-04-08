@@ -6,7 +6,10 @@
 // identifiziert Daten von Filtern
 // Daten die nicht im Datei-Speicher vorhanden sind
 enum class FilterID {
-    currentGames // timeline_game
+    games_upcoming,
+    games_running,
+    games_pending,
+    games_finished
 };
 
 // identifiziert die Art von server-internen Nachrichtenpaketen

@@ -29,12 +29,13 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         h2rfp::JSObject etipps;
         h2rfp::JSObject groups;
         h2rfp::JSObject item;
-        for (auto gtipp: user["gameTipps"]) {
-            item.put_value(gtipp->index());
-            gtipps.push_back(std::make_pair("", item));
-        }
-        for (auto etipp: user["eventTipps"]) {
-            item.put_value(etipp->index());
+        for (auto rank: user["ranks"])
+        {
+            for (auto gtipp: rank["gametipps"]) {
+                item.put_value(gtipp->index());
+                gtipps.push_back(std::make_pair("", item));
+            }
+            item.put_value(rank["eventtipp"]->index());
             etipps.push_back(std::make_pair("", item));
         }
         for (auto group: user["groups"]) {

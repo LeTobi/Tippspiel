@@ -28,7 +28,7 @@ private:
 
     struct HistoryEntry {
         Time period_begin = get_time();
-        Time period_end = get_time()+24*60;
+        Time period_end = get_time()+24*60*60;
         std::set<MsgID> changes;
     };
 

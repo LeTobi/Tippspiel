@@ -14,6 +14,14 @@ GameTimeline::Game::Game(Database::Cluster cl)
 GameTimeline::Game::Game(Time t)
 {
     starttime = t;
+    endtime = t;
+}
+
+void GameTimeline::Game::update()
+{
+    if (cluster.is_null())
+        return;
+    starttime = cluster["start"].get<int>();
     endtime = starttime + (45 + 15 + 45) * 60;
     switch (cluster["phase"].get<int>())
     {
@@ -26,21 +34,22 @@ GameTimeline::Game::Game(Time t)
     }
 }
 
-void GameTimeline::Game::update()
-{
-    if (cluster.is_null())
-        return;
-    starttime = cluster["start"].get<int>();
-    endtime = starttime + 90*60; // hier könnte ihre Laufzeit stehen
-}
-
-bool GameTimeline::TimeOrder::operator()(const Game* a, const Game* b)
+bool GameTimeline::StartOrder::operator()(const Game* a, const Game* b)
 {
     if (b==nullptr)
         return false;
     if (a==nullptr)
         return true;
     return a->starttime < b->starttime;
+}
+
+bool GameTimeline::FinishOrder::operator()(const Game* a, const Game* b)
+{
+    if (b==nullptr)
+        return false;
+    if (a==nullptr)
+        return true;
+    return a->endtime < b->endtime;
 }
 
 GameTimeline::~GameTimeline()
@@ -54,7 +63,8 @@ void GameTimeline::init()
     for (Database::Cluster storedgame: maindata->storage.list("Game")) {
         Game* game = new Game(storedgame);
         games.insert({storedgame, game});
-        timeline.insert(game);
+        startlist.insert(game);
+        finishlist.insert(game);
     }
     set_indicators();
 }
@@ -62,9 +72,18 @@ void GameTimeline::init()
 void GameTimeline::tick()
 {
     Game now (get_time());
-    if (!TimeOrder()(&now,*next_game)) {
-        global_message_update(FilterID::currentGames);
+    bool new_upcoming = upcoming_begin!=upcoming_end && has_started(&now,*upcoming_begin);
+    bool new_finished = finished_end!=finished_begin && FinishOrder()(*finished_end,&now);
+    
+    if (new_upcoming || new_finished) {
         set_indicators();
+        global_message_update(FilterID::games_running);
+    }
+    if (new_upcoming) {
+        global_message_update(FilterID::games_upcoming);
+    }
+    if (new_finished) {
+        global_message_update(FilterID::games_finished);
     }
 }
 
@@ -73,20 +92,39 @@ void GameTimeline::update(Database::Cluster cluster)
     if (cluster.type().name != "Game")
         return;
 
+    Game now (get_time());
     Game* game;
-    if (games.count(cluster)==0) {
+    if (games.count(cluster)==0)
+    {
         game = new Game(cluster);
         games.insert({cluster,game});
-    } else {
+    }
+    else
+    {
         game = games.at(cluster);
-        timeline.erase(game);
-        game->update();
     }
 
-    if (TimeOrder()(*past_horizon,game) && TimeOrder()(game,*future_horizon)) {
-        global_message_update(FilterID::currentGames);
-        set_indicators();
-    }
+    bool running_before = is_running(&now,game);
+    bool upcoming_before = hits_upcoming_horizon(&now,game);
+    bool finished_before = hits_finished_horizon(&now,game);
+
+    startlist.erase(game);
+    finishlist.erase(game);
+    game->update();
+    startlist.insert(game);
+    finishlist.insert(game);
+    set_indicators();
+
+    bool running_after = is_running(&now,game);
+    bool upcoming_after = hits_upcoming_horizon(&now,game);
+    bool finished_after = hits_finished_horizon(&now,game);
+
+    if (running_before != running_after)
+        global_message_update(FilterID::games_running);
+    if (finished_before != finished_after)
+        global_message_update(FilterID::games_finished);
+    if (upcoming_before != upcoming_after)
+        global_message_update(FilterID::games_upcoming);
 }
 
 void GameTimeline::remove(Database::Cluster cluster)
@@ -94,16 +132,83 @@ void GameTimeline::remove(Database::Cluster cluster)
     //TODO
 }
 
+bool GameTimeline::hits_upcoming_horizon(const Game* now, const Game* game)
+{
+    if (upcoming_end == upcoming_end)
+        return has_started(now,game);
+    return StartOrder()(*upcoming_begin,game) && !StartOrder()(*upcoming_end,game);
+}
+
+bool GameTimeline::hits_finished_horizon(const Game* now, const Game* game)
+{
+    if (finished_end == finished_end)
+        return has_finished(now,game);
+    return FinishOrder()(*finished_begin,game) && !FinishOrder()(*finished_end,game);
+}
+
+bool GameTimeline::is_running(const Game* now, const Game* game)
+{
+    return !StartOrder()(now,game) && FinishOrder()(now,game);
+}
+
+bool GameTimeline::has_started(const Game* now, const Game* game)
+{
+    return !StartOrder()(now,game);
+}
+
+bool GameTimeline::has_finished(const Game*now, const Game* game)
+{
+    return FinishOrder()(game,now);
+}
+
 void GameTimeline::set_indicators()
 {
     Game now (get_time());
-    next_game = timeline.upper_bound(&now);
-    future_horizon = next_game;
-    past_horizon = next_game;
+
+    upcoming_begin = startlist.upper_bound(&now);
+    upcoming_end = upcoming_begin;
     for (int i=0;i<5;i++)
-        if (future_horizon!=timeline.end())
-            ++future_horizon;
-    for (int i=0;i<6;i++)
-        if (past_horizon!=timeline.begin())
-            --past_horizon;
+        if (upcoming_end!=startlist.end())
+            ++upcoming_end;
+
+    finished_end = finishlist.upper_bound(&now);
+    finished_begin = finished_end;
+    for (int i=0;i<5;i++)
+        if (finished_begin!=finishlist.begin())
+            --finished_begin;
+
+    running_begin = finished_end;
+    running_end = running_begin;
+    while (running_end!=finishlist.end() && is_running(&now,*running_end))
+        ++running_end;
+
+
+    // run through potential pending games
+    FinishIterator it;
+    if (end_of_ignore==nullptr)
+        it = finishlist.begin();
+    else
+        it = finishlist.find(end_of_ignore);
+    std::set<Game*> new_pendings;    
+    bool ignore = true;
+    bool has_updated = false;
+    if (it!=finishlist.end())
+        while(++it!=finishlist.end() && has_finished(&now,*it))
+            if ((**it).cluster["gameStatus"].get<int>() == GSTATUS_ENDED)
+            {
+                if (ignore)
+                    end_of_ignore = *it;
+            }
+            else
+            {
+                new_pendings.insert(*it);
+                if (pending_games.count(*it)==0)
+                    has_updated = true;
+                ignore = false;
+            }
+    if (pending_games.size() != new_pendings.size())
+        has_updated=true;
+    pending_games = new_pendings;
+    if (has_updated)
+        global_message_update(FilterID::games_pending);
 }

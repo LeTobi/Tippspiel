@@ -48,7 +48,19 @@ void msg_handler::sync(Session& session, const tobilib::h2rfp::Message& msg)
         outlist.push_back(std::make_pair("",maindata->cache.get_data(session,msgid)));
     }
 
+    session.log << "Daten für " << msg.data.get("table","") << " angefordert." << std::endl;
     h2rfp::JSObject output = make_result();
     output.put_child("data", outlist);
     return_result(session,msg,output);
+}
+
+void msg_handler::inform_identity(Session& session, const h2rfp::Message& msg)
+{
+    if (!check_login(session,msg))
+        return;
+    
+    MsgID userdata (MsgType::user,session.user.index());
+    h2rfp::JSObject answer = make_result();
+    answer.put_child("data", maindata->cache.get_data(session,userdata));
+    return_result(session,msg,answer);
 }

@@ -4,53 +4,59 @@
 #include "updateTracker.h"
 #include "msgCache.h"
 
+void global_message_update(MsgType type, unsigned int arg0, Time urgency)
+{
+    MsgID id (type,arg0);
+    maindata->updateTracker.update(id, urgency);
+    maindata->cache.remove(id);
+}
+
 void global_message_update(tobilib::Database::Cluster cluster, Time urgency)
 {
+    maindata->log << "update urgency: " << urgency << std::endl;
     maindata->filters.update(cluster);
     
     if (cluster.type().name == "User") {
-        MsgID id (MsgType::user,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::user,cluster.index(),urgency);
     }
     else if (cluster.type().name == "Group") {
-        MsgID id (MsgType::group,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::group,cluster.index(),urgency);
     }
     else if (cluster.type().name == "Player") {
-        MsgID id (MsgType::player,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::player,cluster.index(),urgency);
     }
     else if (cluster.type().name == "Team") {
-        MsgID id (MsgType::team,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::team,cluster.index(),urgency);
     }
     else if (cluster.type().name == "Event") {
-        MsgID id (MsgType::event,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::event,cluster.index(),urgency);
     }
     else if (cluster.type().name == "Game") {
-        MsgID id (MsgType::game,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::game,cluster.index(),urgency);
     }
     else if (cluster.type().name == "eventTipp") {
-        MsgID id (MsgType::eventTipp,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::eventTipp,cluster.index(),urgency);
     }
     else if (cluster.type().name == "gameTipp") {
-        MsgID id (MsgType::gameTipp,cluster.index());
-        maindata->updateTracker.update(id,urgency);
-        maindata->cache.remove(id);
+        global_message_update(MsgType::gameTipp,cluster.index(),urgency);
     }
 }
 
 void global_message_update(FilterID id)
 {
-    
+    switch (id)
+    {
+    case FilterID::games_finished:
+        global_message_update(MsgType::hotGames,0,WAIT_SHORT);
+        break;
+    case FilterID::games_pending:
+        // no message yet
+        break;
+    case FilterID::games_running:
+        global_message_update(MsgType::hotGames,0,WAIT_SHORT);
+        break;
+    case FilterID::games_upcoming:
+        global_message_update(MsgType::hotGames,0,WAIT_SHORT);
+        break;
+    }
 }

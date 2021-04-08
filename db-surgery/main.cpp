@@ -1,6 +1,6 @@
 #include <iostream>
 #include <tobilib/database/database.h>
-#include <manipulate.h>
+#include "manipulate.h"
 
 using namespace tobilib;
 
@@ -14,8 +14,20 @@ int main()
     std::getline(std::cin,inp);
     if (inp != "ja")
         return 0;
+
     std::cout << "bearbeite Datenbank..." << std::endl;
+    database.setPath("../../data/");
+    database.init();
+    database.open();
+    if (!database.is_good()) {
+        std::cout << "Fehler beim initiieren der Datenbank" << std::endl;
+        return 0;
+    }
+
     manipulate();
-    std::cout << "Programm beendet." << std::endl;
+    if (database.is_good())
+        std::cout << "Der Eingriff ist zu ende." << std::endl;
+    else
+        std::cout << "Es ist ein Fehler in der Datenbank aufgetreten." << std::endl;
     return 0;
 }

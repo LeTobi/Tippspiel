@@ -8,6 +8,7 @@ namespace msg_handler {
     void game_tipp(Session&, tobilib::h2rfp::Message&);
     void game_announce(Session&, tobilib::h2rfp::Message&);
     void game_shift_phase(Session&, tobilib::h2rfp::Message&);
+    void game_report(Session&, tobilib::h2rfp::Message&);
 
 }
 

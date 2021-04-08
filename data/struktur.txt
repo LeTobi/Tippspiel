@@ -5,8 +5,8 @@ type User
     char 50 email
     char 100 name
     char 100 token
-    GameTipp [] gameTipps
-    EventTipp [] eventTipps
+    Rank [] ranks
+    int points
     Group [] groups
     User invitor
     bool perm_eventAnnounce
@@ -53,6 +53,7 @@ type Event
     Team [] teams
     Game [] games
     EventTipp [] tipps
+    int tippcount
     Rank [] ranks
     Team winner
     Player topscorer
@@ -82,6 +83,7 @@ type Game
     int 2 penalty
     Player [] scorers
     GameTipp [] tipps
+    int tippcount
     Game 2 previousStage
     Game nextStage
 
@@ -98,5 +100,7 @@ type GameTipp
 type Rank
     Event event
     User user
+    GameTipp [] gametipps
+    EventTipp eventtipp
     int points
     int tippcount

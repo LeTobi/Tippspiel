@@ -4,46 +4,29 @@
 #include "../filters/gameTimeline.h"
 #include "../misc/enums.h"
 #include "../dataEdit/game.h"
-#include <cmath>
 
 void GameObserver::init()
 {
-    // nichts die bohne
+    log.prefix = "GameObserver: ";
+    log.parent = &maindata->log;
 }
 
 void GameObserver::tick()
 {
-    GameTimeline::Iterator it = maindata->filters.timeline.next_game;
-    Time now = get_time();
-    Time new_horizon = now;
-    while (it != maindata->filters.timeline.timeline.begin()
-        && (**it).starttime >= horizon)
-    {
-        int gamestate = (**it).cluster["gameStatus"].get<int>();
-        if ((**it).starttime <= now)
-        {
-            // Spiel hat begonnen
-            if (gamestate < GSTATUS_RUNNING)
-                data_edit::set_game_status((**it).cluster,GSTATUS_RUNNING);
+    auto it = maindata->filters.timeline.running_begin;
+    while (it != maindata->filters.timeline.running_end) {
+        if ((**it).cluster["gameStatus"].get<int>() != GSTATUS_RUNNING) {
+            log << "Spiel nr. " << (**it).cluster.index() << " wird aktiv" << std::endl;
+            data_edit::set_game_status((**it).cluster,GSTATUS_RUNNING);
+            return; // iteratoren werden ungültig
         }
-        if ((**it).endtime > now)
-        {
-            // Spiel ist am laufen
-            if (gamestate > GSTATUS_RUNNING)
-                data_edit::set_game_status((**it).cluster,GSTATUS_RUNNING);
-        }
-        else
-        {
-            // Spiel ist vorbei
-            if (gamestate < GSTATUS_PENDING)
-                data_edit::set_game_status((**it).cluster,GSTATUS_PENDING);
-        }
-        if (gamestate != GSTATUS_ENDED)
-        {
-            // Hier ist ist eine Aktivität
-            new_horizon = std::min(new_horizon, (**it).starttime);
-        }
-        --it;
+        ++it;
     }
-    horizon = new_horizon;
+    for (auto gp: maindata->filters.timeline.pending_games) {
+        if (gp->cluster["gameStatus"].get<int>() != GSTATUS_PENDING) {
+            log << "Erwarte Resultate von Spiel nr. " << gp->cluster.index() << std::endl;
+            data_edit::set_game_status(gp->cluster,GSTATUS_PENDING);
+            return; // iteratoren werden ungültig
+        }
+    }
 }

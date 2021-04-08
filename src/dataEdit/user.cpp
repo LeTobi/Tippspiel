@@ -28,10 +28,11 @@ void data_edit::set_user_token(Database::Cluster user, const std::string& token)
 void data_edit::set_user_last_login(Database::Cluster user)
 {
     user["lastlogin"].set( get_time() );
-    global_message_update(user, WAIT_SHORT);
+    global_message_update(user, WAIT_ENDLESS);
 }
 
 void data_edit::set_user_sync(Database::Cluster user, Time t)
 {
     user["lastupdate"].set(t);
+    global_message_update(user, WAIT_ENDLESS);
 }

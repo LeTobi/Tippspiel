@@ -1,16 +1,15 @@
 #ifndef TIPPSPIEL_ACTIONS_GAME_OBSERVER_H
 #define TIPPSPIEL_ACTIONS_GAME_OBSERVER_H
 
-#include "../misc/time.h"
+#include <tobilib/general/exception.hpp>
 
 class GameObserver
 {
 public:
+    tobilib::Logger log;
+
     void init();
     void tick();
-
-private:
-    Time horizon = 0;
 };
 
 #endif

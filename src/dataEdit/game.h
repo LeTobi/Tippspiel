@@ -43,7 +43,15 @@ namespace data_edit
     void set_game_status(tobilib::Database::Cluster game, int status);
     void set_game_phase(tobilib::Database::Cluster game, int phase);
 
-    //void report_game(Client&, h2rfp::Message);
+    void report_game(
+        tobilib::Database::Cluster game,
+        int phase,
+        int score1,
+        int score2,
+        int penalty1,
+        int penalty2,
+        const std::vector<tobilib::Database::Cluster>& scorers
+        );
 }
 
 #endif

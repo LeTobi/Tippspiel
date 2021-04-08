@@ -9,6 +9,7 @@ bool check_login(Session& session, h2rfp::Message msg)
     if (msg.id == 0)
         return false;
 
+    session.log << "Anfrage abgewiesen, login fehlt" << std::endl;
     h2rfp::JSObject answer;
     answer.put("state",RESULT_CLIENT_ERROR);
     answer.put("error",ERROR_NONE);
@@ -24,6 +25,7 @@ bool check_permission(Session& session, h2rfp::Message msg, const std::string& p
     if (msg.id==0)
         return false;
     
+    session.log << "Anfrage abgewiesen, Berechtigung fehlt" << std::endl;
     h2rfp::JSObject answer;
     answer.put("state",RESULT_CLIENT_ERROR);
     answer.put("error",ERROR_NONE);
@@ -36,6 +38,7 @@ bool check_parameter(Session& session, h2rfp::Message msg, const std::string& pa
 {
     if (msg.data.find(param) != msg.data.not_found())
         return true;
+    session.log << "Anfrage falsch formattiert, erwarte '" << param << "'" << std::endl;
     h2rfp::JSObject answer;
     answer.put("state",RESULT_CLIENT_ERROR);
     answer.put("error",ERROR_NONE);
@@ -81,6 +84,7 @@ void return_client_error(Session& session, unsigned int msgid, const std::string
 {
     if (!session.client.is_connected())
         return;
+    session.log << "client request error: " << info << std::endl;
     h2rfp::JSObject out;
     out.put("state",RESULT_CLIENT_ERROR);
     out.put("error",ERROR_NONE);
@@ -97,6 +101,7 @@ void return_server_error(Session& session, unsigned int msgid, const std::string
 {
     if (!session.client.is_connected())
         return;
+    session.log << "server error: " << info << std::endl;
     h2rfp::JSObject out;
     out.put("state",RESULT_SERVER_ERROR);
     out.put("error",ERROR_NONE);
