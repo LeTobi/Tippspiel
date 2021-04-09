@@ -3,6 +3,7 @@
 #include "../../misc/response_util.h"
 #include "../../main-data.h"
 #include "../../msgCache.h"
+#include "../../msgTracking.h"
 #include <tobilib/database/manipulation/commands.h>
 #include <tobilib/database/manipulation/export.h>
 
@@ -136,6 +137,28 @@ void cmd_cache(Session& session, const Message& msg, const std::string& in)
         }
         output << "Nachricht ist an der Stelle " << result;
         cmd_echo(session,msg,output.str());
+        return;
+    }
+    else if (cmd=="update")
+    {
+        std::string clustername;
+        unsigned int index;
+        input >> clustername >> index;
+        if (!input) {
+            cmd_echo(session,msg,"erwarte cluster und index");
+            return;
+        }
+        if (maindata->storage.getType(clustername) == Database::ClusterType::invalid) {
+            cmd_echo(session,msg,"Clustertype nicht gefunden");
+            return;
+        }
+        Database::Cluster target = maindata->storage.list(clustername)[index];
+        if (target.is_null()) {
+            cmd_echo(session,msg,"Der Index existiert nicht");
+            return;
+        }
+        global_message_update(target,WAIT_SHORT);
+        cmd_echo(session,msg,"Update eingereiht");
         return;
     }
     else if (cmd=="clear")

@@ -52,7 +52,7 @@ public:
     Finishlist finishlist;
 
 private:
-    Game* end_of_ignore = nullptr;
+    Game* last_ignore = nullptr;
 
     bool hits_upcoming_horizon(const Game*, const Game*);
     bool hits_finished_horizon(const Game*, const Game*);

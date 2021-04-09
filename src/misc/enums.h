@@ -31,6 +31,13 @@ enum {
     RESULT_SERVER_ERROR
 };
 
+enum {
+    TIPPKAT_WRONG,
+    TIPPKAT_TEAM,
+    TIPPKAT_DIFF,
+    TIPPKAT_EXACT
+};
+
 enum ErrCode {
     ERROR_NONE = 0,
     ERROR_NOT_LOGGEDIN = 1,

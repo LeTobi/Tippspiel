@@ -77,7 +77,7 @@ void return_result(Session& session, unsigned int msgid, h2rfp::JSObject data)
 
 void return_client_error(Session& session, h2rfp::Message msg, const std::string& info)
 {
-    return_client_error(session,msg,info);
+    return_client_error(session,msg.id,info);
 }
 
 void return_client_error(Session& session, unsigned int msgid, const std::string& info)

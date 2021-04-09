@@ -82,6 +82,7 @@ type Game
     int 2 scores
     int 2 penalty
     Player [] scorers
+    Team winner
     GameTipp [] tipps
     int tippcount
     Game 2 previousStage
@@ -94,6 +95,9 @@ type GameTipp
     int 2 bet
     Team winner
     Player topscorer
+    int tippkat
+    int goals
+    bool penaltyBonus
     int reward
     Rank rank
 

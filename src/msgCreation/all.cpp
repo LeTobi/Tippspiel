@@ -8,6 +8,7 @@
 #include "user.h"
 #include "filters.h"
 #include "location.h"
+#include "rank.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -36,6 +37,8 @@ bool msg_creation::is_individual(Session& session, const MsgID& id)
         return detail::location_list_individual(session,id);
     case MsgType::gamePlayers:
         return detail::suggest_players_individual(session,id);
+    case MsgType::eventRank:
+        return detail::event_rank_individual(session,id);
     case MsgType::none:
         break;
     }
@@ -66,6 +69,8 @@ JSObject msg_creation::make_msg(Session& session, const MsgID& id)
         return detail::location_list(session,id);
     case MsgType::gamePlayers:
         return detail::suggest_players(session,id);
+    case MsgType::eventRank:
+        return detail::event_rank_msg(session,id);
     case MsgType::none:
         break;
     }

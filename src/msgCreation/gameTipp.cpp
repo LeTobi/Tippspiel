@@ -24,6 +24,9 @@ JSObject msg_creation::detail::gametipp_make_msg(Session& session, const MsgID& 
     out.put("game",gtipp["game"]->index());
     out.put("user",gtipp["user"]->index());
     out.put("reward",gtipp["reward"].get<int>());
+    out.put("tippkat",gtipp["tippkat"].get<int>());
+    out.put("goals",gtipp["goals"].get<int>());
+    out.put("bonus",gtipp["penaltyBonus"].get<bool>());
 
     if (gtipp["game"]["start"].get<int>() > get_time()
         && *gtipp["user"] != session.user)

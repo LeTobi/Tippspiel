@@ -52,6 +52,8 @@ namespace data_edit
         int penalty2,
         const std::vector<tobilib::Database::Cluster>& scorers
         );
+
+    void game_fetch_stage(tobilib::Database::Cluster game);
 }
 
 #endif

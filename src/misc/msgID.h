@@ -25,7 +25,8 @@ enum class MsgType {
     gameTipp,
     locations,
     hotGames,
-    gamePlayers
+    gamePlayers,
+    eventRank
 };
 
 // identifiziert server-interne Nachrichtenpakete

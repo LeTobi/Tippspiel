@@ -166,14 +166,44 @@ void data_edit::report_game(
         const std::vector<tobilib::Database::Cluster>& scorers
         )
 {
-    std::vector<int> rewards;
-    for (Database::Member tippptr: game["tipps"])
+    Database::Cluster winnerteam;
+    if (score1>score2)
+        winnerteam = *game["teams"][0];
+    else if (score2>score1)
+        winnerteam = *game["teams"][1];
+    else if (phase>=GAMEPHASE_PENALTY) {
+        if (penalty1>penalty2)
+            winnerteam = *game["teams"][0];
+        if (penalty2<penalty1)
+            winnerteam = *game["teams"][1];
+    }
+
+    struct TippResult {
+        int tippkat = TIPPKAT_WRONG;
+        int goals = 0;
+        bool bonus = false;
+    };
+    
+    std::vector<TippResult> results;
+    for (Database::Member tipp: game["tipps"])
     {
-        int reward = 5;
-
-        // todo reward ausrechnen
-
-        rewards.push_back(reward);
+        TippResult res;
+        int tscore1 = tipp["bet"][0].get<int>();
+        int tscore2 = tipp["bet"][1].get<int>();
+        Database::Cluster twinner = *tipp["winner"];
+        Database::Cluster tscorer = *tipp["topscorer"];
+        if (score1<score2 == tscore1<tscore2 && score1>score2 == tscore1>tscore2)
+            res.tippkat = TIPPKAT_TEAM;
+        if (score1-score2 == tscore1-tscore2)
+            res.tippkat = TIPPKAT_DIFF;
+        if (score1==tscore1 && score2==tscore2)
+            res.tippkat = TIPPKAT_EXACT;
+        if (phase >= GAMEPHASE_PENALTY && tscore1==tscore2 && winnerteam==twinner)
+            res.bonus = true;
+        for (Database::Cluster scorer: scorers)
+            if (tscorer==scorer)
+                res.goals++;
+        results.push_back(res);
     }
 
     FlagRequest lock = maindata->storage.begin_critical_operation();
@@ -183,15 +213,41 @@ void data_edit::report_game(
         game["scores"][1].set( score2 );
         game["penalty"][0].set( penalty1 );
         game["penalty"][1].set( penalty2 );
+        game["winner"].set( winnerteam );
         Database::Member db_scorers = game["scorers"];
         while (db_scorers.begin() != db_scorers.end())
             db_scorers.erase(db_scorers.begin());
         for (tobilib::Database::Cluster scorer: scorers)
             db_scorers.emplace().set( scorer );
-        auto rewardit = rewards.begin();
-        for (Database::Member tippptr: game["tipps"])
-            tipp_set_points(*tippptr,*(rewardit++));
+        auto it = results.begin();
+        for (Database::Member tippptr: game["tipps"]) {
+            tipp_set_result(*tippptr,it->tippkat,it->goals,it->bonus);
+            ++it;
+        }
+        game_fetch_stage(*game["nextStage"]);
     maindata->storage.end_critical_operation(lock);
 
     global_message_update(game,WAIT_NOT);
+}
+
+void data_edit::game_fetch_stage(Database::Cluster game)
+{
+    if (game.is_null())
+        return;
+    Database::Cluster team1before = *game["teams"][0];
+    Database::Cluster team1after = team1before;
+    Database::Cluster team2before = *game["teams"][1];
+    Database::Cluster team2after = team2before;
+    if (!game["previousStage"][0]->is_null())
+        team1after = *game["previousStage"][0]["winner"];
+    if (!game["previousStage"][1]->is_null())
+        team2after = *game["previousStage"][1]["winner"];
+
+    if (team1before!=team2after || team2before!=team2after)
+    {
+        game["teams"][0].set( team1after );
+        game["teams"][1].set( team2after );
+        game_fetch_stage(*game["nextStage"]);
+        global_message_update(game, WAIT_SHORT);
+    }
 }

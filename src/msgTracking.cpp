@@ -34,11 +34,14 @@ void global_message_update(tobilib::Database::Cluster cluster, Time urgency)
     else if (cluster.type().name == "Game") {
         global_message_update(MsgType::game,cluster.index(),urgency);
     }
-    else if (cluster.type().name == "eventTipp") {
+    else if (cluster.type().name == "EventTipp") {
         global_message_update(MsgType::eventTipp,cluster.index(),urgency);
     }
-    else if (cluster.type().name == "gameTipp") {
+    else if (cluster.type().name == "GameTipp") {
         global_message_update(MsgType::gameTipp,cluster.index(),urgency);
+    }
+    else if (cluster.type().name == "Rank") {
+        global_message_update(MsgType::eventRank,cluster["event"]->index(),urgency);
     }
 }
 

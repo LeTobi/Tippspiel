@@ -72,14 +72,14 @@ void GameTimeline::init()
 void GameTimeline::tick()
 {
     Game now (get_time());
-    bool new_upcoming = upcoming_begin!=upcoming_end && has_started(&now,*upcoming_begin);
-    bool new_finished = finished_end!=finished_begin && FinishOrder()(*finished_end,&now);
+    bool new_running = upcoming_begin!=upcoming_end && has_started(&now,*upcoming_begin);
+    bool new_finished = running_end!=running_begin && has_finished(&now,*running_begin);
     
-    if (new_upcoming || new_finished) {
+    if (new_running || new_finished) {
         set_indicators();
         global_message_update(FilterID::games_running);
     }
-    if (new_upcoming) {
+    if (new_running) {
         global_message_update(FilterID::games_upcoming);
     }
     if (new_finished) {
@@ -108,6 +108,16 @@ void GameTimeline::update(Database::Cluster cluster)
     bool upcoming_before = hits_upcoming_horizon(&now,game);
     bool finished_before = hits_finished_horizon(&now,game);
 
+    if (last_ignore!=nullptr && cluster == last_ignore->cluster) {
+        // das sollte eigentlich nie eintreffen, da die ignorier-liste nicht vom server bearbeitet wird.
+        // Aber Bearbeitungen von hand wären möglich
+        auto it = finishlist.find(last_ignore);
+        if (it==finishlist.begin())
+            last_ignore = nullptr;
+        else
+            last_ignore = *(--it);
+    }
+
     startlist.erase(game);
     finishlist.erase(game);
     game->update();
@@ -134,21 +144,25 @@ void GameTimeline::remove(Database::Cluster cluster)
 
 bool GameTimeline::hits_upcoming_horizon(const Game* now, const Game* game)
 {
-    if (upcoming_end == upcoming_end)
-        return has_started(now,game);
-    return StartOrder()(*upcoming_begin,game) && !StartOrder()(*upcoming_end,game);
+    if (upcoming_begin == upcoming_end)
+        return !has_started(now,game);
+    auto last_upcoming = upcoming_end;
+    last_upcoming--;
+    return !(StartOrder()(game,*upcoming_begin) || StartOrder()(*last_upcoming,game));
 }
 
 bool GameTimeline::hits_finished_horizon(const Game* now, const Game* game)
 {
-    if (finished_end == finished_end)
+    if (finished_begin == finished_end)
         return has_finished(now,game);
-    return FinishOrder()(*finished_begin,game) && !FinishOrder()(*finished_end,game);
+    auto last_finished = finished_end;
+    last_finished--;
+    return !(FinishOrder()(game,*finished_begin) || FinishOrder()(*last_finished,game));
 }
 
 bool GameTimeline::is_running(const Game* now, const Game* game)
 {
-    return !StartOrder()(now,game) && FinishOrder()(now,game);
+    return has_started(now,game) && !has_finished(now,game);
 }
 
 bool GameTimeline::has_started(const Game* now, const Game* game)
@@ -158,7 +172,7 @@ bool GameTimeline::has_started(const Game* now, const Game* game)
 
 bool GameTimeline::has_finished(const Game*now, const Game* game)
 {
-    return FinishOrder()(game,now);
+    return !FinishOrder()(now,game);
 }
 
 void GameTimeline::set_indicators()
@@ -185,27 +199,29 @@ void GameTimeline::set_indicators()
 
     // run through potential pending games
     FinishIterator it;
-    if (end_of_ignore==nullptr)
+    if (last_ignore==nullptr)
         it = finishlist.begin();
     else
-        it = finishlist.find(end_of_ignore);
+        it = ++finishlist.find(last_ignore);
     std::set<Game*> new_pendings;    
     bool ignore = true;
     bool has_updated = false;
-    if (it!=finishlist.end())
-        while(++it!=finishlist.end() && has_finished(&now,*it))
-            if ((**it).cluster["gameStatus"].get<int>() == GSTATUS_ENDED)
-            {
-                if (ignore)
-                    end_of_ignore = *it;
-            }
-            else
-            {
-                new_pendings.insert(*it);
-                if (pending_games.count(*it)==0)
-                    has_updated = true;
-                ignore = false;
-            }
+    while(it!=finishlist.end() && has_finished(&now,*it))
+    {
+        if ((**it).cluster["gameStatus"].get<int>() == GSTATUS_ENDED)
+        {
+            if (ignore)
+                last_ignore = *it;
+        }
+        else
+        {
+            new_pendings.insert(*it);
+            if (pending_games.count(*it)==0)
+                has_updated = true;
+            ignore = false;
+        }
+        ++it;
+    }
     if (pending_games.size() != new_pendings.size())
         has_updated=true;
     pending_games = new_pendings;

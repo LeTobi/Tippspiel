@@ -94,10 +94,11 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::game_shift_phase(*this,msg);
     else if (msg.name == "reportGame")
         msg_handler::game_report(*this,msg);
+    else if (msg.name == "ranking")
+        msg_handler::get_event_ranking(*this,msg);
     else if (msg.name == "console")
         msg_handler::console_input(*this, msg);
     else {
-        log << "Diese Anfrage ist nicht teil der API" << std::endl;
         return_client_error(*this,msg,"Diese Funktion ist nicht teil der API");
     }
 }
