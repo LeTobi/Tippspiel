@@ -40,6 +40,8 @@ bool GameTimeline::StartOrder::operator()(const Game* a, const Game* b)
         return false;
     if (a==nullptr)
         return true;
+    if (a->starttime == b->starttime)
+        return a->cluster < b->cluster;
     return a->starttime < b->starttime;
 }
 
@@ -49,6 +51,8 @@ bool GameTimeline::FinishOrder::operator()(const Game* a, const Game* b)
         return false;
     if (a==nullptr)
         return true;
+    if (a->endtime == b->endtime)
+        return a->cluster < b->cluster;
     return a->endtime < b->endtime;
 }
 

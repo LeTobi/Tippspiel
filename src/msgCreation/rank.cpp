@@ -16,7 +16,7 @@ struct OnlyThisFile_RankOrder {
 
 h2rfp::JSObject msg_creation::detail::event_rank_msg(Session& session, MsgID id)
 {
-    std::set<Database::Cluster,OnlyThisFile_RankOrder> ranking;
+    std::multiset<Database::Cluster,OnlyThisFile_RankOrder> ranking;
     Database::Cluster event = maindata->storage.list("Event")[id.arg0];
     for (Database::Member rptr: event["ranks"])
         ranking.insert(*rptr);
