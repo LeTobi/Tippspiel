@@ -1,13 +1,9 @@
-#include "main.h"
-#include "../../misc/config.h"
+#include "cache.h"
+#include "util.h"
 #include "../../misc/response_util.h"
-#include "../../main-data.h"
 #include "../../msgCache.h"
 #include "../../msgTracking.h"
-#include <tobilib/database/manipulation/commands.h>
-#include <tobilib/database/manipulation/export.h>
-
-#include <map>
+#include "../../main-data.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -25,58 +21,6 @@ const std::map<std::string,MsgType> msgtypes {
     {"User",MsgType::user}
 };
 
-void cmd_echo(Session& session, const Message& msg, const std::string& txt)
-{
-    h2rfp::JSObject answer = make_result();
-    answer.put("data.text",txt);
-    return_result(session,msg,answer);
-}
-
-void cmd_access(Session& session, const Message& msg, const std::string& cmd)
-{
-    cmd_echo(session, msg, database_tools::command(maindata->storage, cmd) );
-}
-
-void cmd_print(Session& session, const Message& msg, const std::string& cmd)
-{
-    std::string path = get_config("../../config/export.txt");
-    if (path.empty())
-    {
-        cmd_echo(session, msg, "export.txt kann nicht gelesen werden.");
-        return;
-    }
-
-    std::string table;
-    std::stringstream input(cmd);
-    input >> table;
-    if (!input)
-    {
-        cmd_echo(session,msg, "print: Es muss eine Tabelle angegeben werden");
-    }
-
-    database_tools::Result result;
-
-    if (table == "all")
-    {
-        result = database_tools::export_database(maindata->storage,path);
-        if (!result)
-        {
-            cmd_echo(session,msg,result.info);
-            return;
-        }
-        cmd_echo(session,msg,"Datenbank wurde vollständig exportiert");
-        return;
-    }
-
-    result = database_tools::export_table(maindata->storage, table, path);
-    if (!result)
-    {
-        cmd_echo(session,msg,result.info);
-        return;
-    }
-    cmd_echo(session,msg,"Die Tabelle wurde exportiert");
-}
-
 void cmd_cache(Session& session, const Message& msg, const std::string& in)
 {
     std::stringstream input(in);
@@ -91,7 +35,8 @@ void cmd_cache(Session& session, const Message& msg, const std::string& in)
             return;
         }
         int percent = 100 * maindata->cache.stat_hits / maindata->cache.stat_requests;
-        output << maindata->cache.stat_hits << "/" << maindata->cache.stat_requests << " (" << percent << "%) requests aus Cache beantwortet";
+        output << maindata->cache.stat_hits << "/" << maindata->cache.stat_requests << " (" << percent << "%) hits\n";
+        output << maindata->cache.size() << "/" << MsgCache::CACHE_SIZE << " belegt";
         cmd_echo(session,msg,output.str());
         return;
     }
@@ -170,43 +115,4 @@ void cmd_cache(Session& session, const Message& msg, const std::string& in)
     else {
         cmd_echo(session,msg,"Unbekannter Befehl");
     }
-}
-
-void cmd_guard(Session& session, const Message& msg, const std::string& in)
-{
-    std::stringstream input (in);
-    std::string cmd;
-    input >> cmd;
-    if (!input) {
-        cmd_echo(session,msg,"gard: erwarte anweisung");
-        return;
-    }
-    if (cmd=="watch")
-    {
-        std::map<Database::Cluster,int> active_users;
-        int sum = 0;
-        for (Session& sess: maindata->sessions) {
-            if (sess.client.status() == h2rfp::EndpointStatus::connected)
-            {
-                sum++;
-                if (active_users.count(sess.user)==0)
-                    active_users[sess.user] = 1;
-                else
-                    active_users[sess.user]++;
-            }
-        }
-        std::stringstream answer;
-        answer << active_users.size() << " users mit " << sum << " clients verbunden";
-        for (auto& item: active_users)
-        {
-            Database::Cluster cli_user = item.first;
-            if (cli_user.is_null())
-                answer << "\n" << item.second << "x not logged in";
-            else
-                answer << "\nid " << cli_user.index() << " (" << cli_user["name"].get<std::string>() << ") connected " << item.second << "x";
-        }
-        cmd_echo(session,msg,answer.str());
-        return;
-    }
-
 }

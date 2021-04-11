@@ -247,7 +247,7 @@ void msg_handler::game_report(Session& session, Message& msg)
         scorers.push_back(scorer);
     }
 
-    data_edit::report_game(game,phase,score1,score2,penalty1,penalty2,scorers);
+    data_edit::report_game(session.user,game,phase,score1,score2,penalty1,penalty2,scorers);
 
     return_result(session,msg,make_result());
 }

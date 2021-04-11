@@ -44,6 +44,7 @@ namespace data_edit
     void set_game_phase(tobilib::Database::Cluster game, int phase);
 
     void report_game(
+        tobilib::Database::Cluster user,
         tobilib::Database::Cluster game,
         int phase,
         int score1,

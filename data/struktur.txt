@@ -2,6 +2,7 @@ type User
     int registerdate
     int lastlogin
     int lastupdate
+    int lastrecovery
     char 50 email
     char 100 name
     char 100 token
@@ -14,13 +15,12 @@ type User
     bool perm_gameAnnounce
     bool perm_gameReport
     bool perm_console
+    bool banned
 
 type Group
     User creator
-    User owner
     int createdAt
     char 100 name
-    char 100 token
     User [] users
 
 type Player
@@ -69,8 +69,9 @@ type EventTipp
 
 type Game
     User creator
-    int createdAt
     User reporter
+    int createdAt
+    int reportedAt
     int start
     Location location
     char 100 name

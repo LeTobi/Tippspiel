@@ -1,5 +1,5 @@
 #include "console.h"
-#include "console/main.h"
+#include "console/all.h"
 #include "../misc/response_util.h"
 
 using namespace tobilib;

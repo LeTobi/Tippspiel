@@ -31,6 +31,12 @@ void data_edit::set_user_last_login(Database::Cluster user)
     global_message_update(user, WAIT_ENDLESS);
 }
 
+void data_edit::set_user_ban(Database::Cluster user, bool ban)
+{
+    user["banned"].set( ban );
+    global_message_update(user, WAIT_SHORT);
+}
+
 void data_edit::set_user_sync(Database::Cluster user, Time t)
 {
     user["lastupdate"].set(t);

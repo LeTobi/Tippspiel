@@ -133,11 +133,11 @@ void GameTimeline::update(Database::Cluster cluster)
     bool upcoming_after = hits_upcoming_horizon(&now,game);
     bool finished_after = hits_finished_horizon(&now,game);
 
-    if (running_before != running_after)
+    if (running_before || running_after)
         global_message_update(FilterID::games_running);
-    if (finished_before != finished_after)
+    if (finished_before || finished_after)
         global_message_update(FilterID::games_finished);
-    if (upcoming_before != upcoming_after)
+    if (upcoming_before || upcoming_after)
         global_message_update(FilterID::games_upcoming);
 }
 

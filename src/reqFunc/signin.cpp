@@ -34,6 +34,14 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
         return;
     }
 
+    if (session.user["banned"].get<bool>())
+    {
+        session.user = Database::Cluster();
+        h2rfp::JSObject answer = make_user_error(ERROR_BANNED);
+        return_result(session,msg,answer);
+        return;
+    }
+
     data_edit::set_user_last_login(session.user);
     session.log << session.user["name"].get<std::string>() << " ist nun eingeloggt" << std::endl;
 

@@ -48,7 +48,8 @@ enum ErrCode {
     ERROR_GAMETIPPS_LOCKED = 6, // Tipps sind deaktiviert
     ERROR_ALREADY_LOGGED_IN = 7, // Beteits eingeloggt
     ERROR_ALREADY_RUNNING = 8, // Der Prozess läuft bereits
-    ERROR_EMAIL_NOT_FOUND = 9 // {email} wurde nicht gefunden
+    ERROR_EMAIL_NOT_FOUND = 9, // {email} wurde nicht gefunden
+    ERROR_BANNED = 10 // Nutzer ist durch Admins vom Spiel ausgeschlossen
 };
 
 #endif

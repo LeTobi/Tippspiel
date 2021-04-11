@@ -33,7 +33,7 @@ JSObject MsgCache::get_data(Session& session, const MsgID& id)
     return entries[offset].data;
 }
 
-int MsgCache::find_entry(const MsgID& id)
+int MsgCache::find_entry(const MsgID& id) const
 {
     for (int i=0;i<entries.size();i++)
     {
@@ -41,6 +41,11 @@ int MsgCache::find_entry(const MsgID& id)
             return i;
     }
     return -1;
+}
+
+int MsgCache::size() const
+{
+    return entries.size();
 }
 
 void MsgCache::clear()

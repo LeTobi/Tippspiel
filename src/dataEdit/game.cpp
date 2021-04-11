@@ -157,6 +157,7 @@ void data_edit::set_game_phase(Database::Cluster game, int phase)
 }
 
 void data_edit::report_game(
+        tobilib::Database::Cluster user,
         tobilib::Database::Cluster game,
         int phase,
         int score1,
@@ -207,6 +208,8 @@ void data_edit::report_game(
     }
 
     FlagRequest lock = maindata->storage.begin_critical_operation();
+        game["reporter"].set( user );
+        game["reportedAt"].set( get_time() );
         game["gameStatus"].set( GSTATUS_ENDED );
         game["phase"].set( phase );
         game["scores"][0].set( score1 );

@@ -18,9 +18,15 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         h2rfp::JSObject out;
         if (user.is_null())
             return out;
+        bool banned = user["banned"].get<bool>();
+        out.put("banned",banned);
         out.put("id",user.index());
-        out.put("name",user["name"].get<std::string>());
+        if (!banned)
+            out.put("name",user["name"].get<std::string>());
+        else  
+            out.put("name","xxx");
         out.put("points",user["points"].get<int>());
+        
         return out;
     }
     else
@@ -52,10 +58,11 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         answer.add_child("groups",gtipps);
         answer.put("points", user["points"].get<int>());
         answer.put("permission.eventAnnounce", user["perm_eventAnnounce"].get<bool>());
-        answer.put("permission.eventReport", user["perm_eventReport"].get<bool>());
-        answer.put("permission.gameAnnounce", user["perm_gameAnnounce"].get<bool>());
-        answer.put("permission.gameReport", user["perm_gameReport"].get<bool>());
-        answer.put("permission.console", user["perm_console"].get<bool>());
+        answer.put("permission.eventReport",   user["perm_eventReport"].get<bool>());
+        answer.put("permission.gameAnnounce",  user["perm_gameAnnounce"].get<bool>());
+        answer.put("permission.gameReport",    user["perm_gameReport"].get<bool>());
+        answer.put("permission.console",       user["perm_console"].get<bool>());
+        answer.put("banned", user["banned"].get<bool>());
         return answer;
     }
 }

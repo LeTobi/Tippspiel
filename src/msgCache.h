@@ -10,8 +10,11 @@ class Session;
 class MsgCache
 {
 public:
+    const static int CACHE_SIZE;
+
     tobilib::h2rfp::JSObject get_data(Session&, const MsgID&);
-    int find_entry(const MsgID&);
+    int find_entry(const MsgID&) const;
+    int size() const;
     void clear();
     void remove(const MsgID&);
 
@@ -26,8 +29,6 @@ private:
     };
 
     std::vector<Entry> entries;
-
-    const static int CACHE_SIZE;
 };
 
 #endif
