@@ -52,8 +52,8 @@ void MainData::init(int port) {
     if (!storage.is_good())
         throw Exception("Tippserver konnte nicht gestartet werden","GlobalData::init()");
 
-    network::ssl_client_ctx.add_verify_path("/etc/ssl/certs");
-    network::ssl_server_init("/root/ssl/wetterfrosch.pem");
+    network::add_cert_path("/etc/ssl/certs");
+    network::set_cert_file("/root/ssl/wetterfrosch.pem");
 
     sessions = std::vector<Session>(100);
     for (int i=0;i<sessions.size();i++) {
