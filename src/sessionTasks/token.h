@@ -18,7 +18,7 @@ public:
 
 private:
     unsigned int response_id;
-    std::string new_token;
+    tobilib::Database::Cluster new_user;
     Task task = NO_TASK;
 };
 

@@ -7,6 +7,7 @@
 namespace data_edit {
 
     tobilib::Database::Cluster create_user(const std::string& name, const std::string& email);
+    void delete_user(tobilib::Database::Cluster user); // nur wenn der nutzer noch nie eingeloggt war
 
     void set_user_token(tobilib::Database::Cluster,const std::string&);
     void set_user_last_login(tobilib::Database::Cluster);

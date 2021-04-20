@@ -139,10 +139,11 @@ void EmailTask::on_new_task()
         on_config_fail("domain.txt");
         return;
     }
-    result.success = true;
-    result.msg.clear();
+    result.success = false;
+    result.msg = "Es wurde keine Verbindung aufgebaut.";
     received.clear();
     socket = new SSL_Endpoint(domain,443);
+    socket->log.parent = &log;
     socket->options.close_timeout = 5;
     socket->options.connect_timeout = 10;
     socket->options.handshake_timeout = 5;
@@ -155,6 +156,8 @@ void EmailTask::on_new_task()
 void EmailTask::on_connect()
 {
     Input& data = tasks.getCurrent();
+    result.success = true;
+    result.msg.clear();
     switch (data.type) {
         case Type::registration:
             send_register_mail();

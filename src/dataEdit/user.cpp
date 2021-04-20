@@ -20,6 +20,15 @@ Database::Cluster data_edit::create_user(const std::string& name, const std::str
     return user;
 }
 
+void data_edit::delete_user(tobilib::Database::Cluster user)
+{
+    if (user.reference_count()>0) {
+        maindata->log << "Server-fehler: Es wurde versucht einen Nutzer zu entfernen, der verwendet wird: id " << user.index() << std::endl;
+        return;
+    }
+    user.erase();
+}
+
 void data_edit::set_user_token(Database::Cluster user, const std::string& token)
 {
     user["token"].set( token );

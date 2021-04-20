@@ -16,13 +16,17 @@ void RegisterTask::tick()
         EmailTask::Result res = maindata->tasks.emails.tasks.getResult(task);
         if (res.success)
         {
+            session->log << new_user["name"].get<std::string>() << " (id " << new_user.index() << ") nimmt jetzt am tippspiel teil" << std::endl;
             return_result(*session,response_id,make_result());
         }
         else
         {
+            session->log << "Beitritt fehlgeschlagen, Nutzer wird entfernt" << std::endl;
+            data_edit::delete_user(new_user);
             return_client_error(*session,response_id,res.msg);
         }
         task=NO_TASK;
+        new_user = Database::Cluster();
     }
 }
 
@@ -39,16 +43,18 @@ void RegisterTask::make_new_user(const std::string& name, const std::string& ema
         return;
     }
 
-    Database::Cluster user = data_edit::create_user(name,email);
+    new_user = data_edit::create_user(name,email);
     response_id = rid;
-    new_token = data_edit::make_new_token(user);
-    data_edit::set_user_token(user,new_token);
+    std::string new_token = data_edit::make_new_token(new_user);
+    data_edit::set_user_token(new_user,new_token);
 
     EmailTask::Input params;
     params.new_token = new_token;
-    params.user = user;
+    params.user = new_user;
     params.type = EmailTask::Type::registration;
     task = maindata->tasks.emails.tasks.makeTask(params);
+
+    session->log << "create_user request: id " << new_user.index() << ", " << name << std::endl;
 }
 
 void RestoreTask::tick()
