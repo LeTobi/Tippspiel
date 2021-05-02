@@ -94,6 +94,16 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::game_shift_phase(*this,msg);
     else if (msg.name == "reportGame")
         msg_handler::game_report(*this,msg);
+    else if (msg.name == "group_create")
+        msg_handler::group_create(*this,msg);
+    else if (msg.name == "group_rename")
+        msg_handler::group_rename(*this,msg);
+    else if (msg.name == "group_join")
+        msg_handler::group_join(*this,msg);
+    else if (msg.name == "group_leave")
+        msg_handler::group_leave(*this,msg);
+    else if (msg.name == "group_reset_token")
+        msg_handler::group_reset_token(*this,msg);
     else if (msg.name == "ranking")
         msg_handler::get_event_ranking(*this,msg);
     else if (msg.name == "console")

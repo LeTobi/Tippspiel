@@ -1,8 +1,10 @@
 #include "account.h"
+#include "../misc/time.h"
 #include "../misc/response_util.h"
 #include "../main-data.h"
 #include "../sessionTasks/all.h"
 #include "../sessionTasks/token.h"
+#include "../dataEdit/user.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -68,6 +70,15 @@ void msg_handler::restore_token(Session& session, const Message& msg)
         return_client_error(session,msg,"Parameter fehlt: email");
         return;
     }
-    
+
+    Time lastrecovery = target_user["lastrecovery"].get<int>();
+    if (get_time() - lastrecovery < 15*60)
+    {
+        h2rfp::JSObject answer = make_user_error(ERROR_COOLDOWN);
+        return_result(session,msg,answer);
+        return;
+    }
+    data_edit::set_user_lastrecovery(target_user, get_time());
+
     session.tasks.token_restore.restore_token(target_user, msg.id);
 }

@@ -69,6 +69,7 @@ void RestoreTask::tick()
         }
         else
         {
+            data_edit::set_user_lastrecovery(target_user, get_time()-20*60);
             return_client_error(*session,response_id,res.msg);
         }
         task=NO_TASK;

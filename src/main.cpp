@@ -1,6 +1,7 @@
 #include <thread>
 
 #include <tobilib/stringplus/stringplus.h>
+#include <tobilib/general/timer.hpp>
 #include "main-data.h"
 
 MainData* maindata = nullptr;

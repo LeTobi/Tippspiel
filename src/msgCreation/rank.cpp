@@ -23,11 +23,18 @@ h2rfp::JSObject msg_creation::detail::event_rank_msg(Session& session, MsgID id)
 
     h2rfp::JSObject output;
     h2rfp::JSObject item;
+    OnlyThisFile_RankOrder is_better;
+    unsigned int global_rank = 1;
+    Database::Cluster last_rank;
     for (Database::Cluster rank: ranking)
     {
+        if (is_better(last_rank,rank))
+            global_rank++;
         item.put("user",rank["user"]->index());
         item.put("points",rank["points"].get<int>());
+        item.put("rank",global_rank);
         output.push_back({"",item});
+        last_rank = rank;
     }
     return output;
 }

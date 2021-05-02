@@ -14,13 +14,16 @@ type User
     bool perm_eventReport
     bool perm_gameAnnounce
     bool perm_gameReport
+    bool perm_groupCreate
     bool perm_console
     bool banned
 
 type Group
     User creator
     int createdAt
+    char 20 token
     char 100 name
+    User admin
     User [] users
 
 type Player

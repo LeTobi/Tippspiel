@@ -16,6 +16,7 @@ Database::Cluster data_edit::create_user(const std::string& name, const std::str
     user["perm_eventReport"].set( false );
     user["perm_gameAnnounce"].set( false );
     user["perm_gameReport"].set( true );
+    user["perm_groupCreate"].set( true );
     user["perm_console"].set( false );
     return user;
 }
@@ -44,6 +45,11 @@ void data_edit::set_user_ban(Database::Cluster user, bool ban)
 {
     user["banned"].set( ban );
     global_message_update(user, WAIT_SHORT);
+}
+
+void data_edit::set_user_lastrecovery(Database::Cluster user, Time t)
+{
+    user["lastrecovery"].set(t);
 }
 
 void data_edit::set_user_sync(Database::Cluster user, Time t)
