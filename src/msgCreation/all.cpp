@@ -3,6 +3,7 @@
 #include "eventTipp.h"
 #include "game.h"
 #include "gameTipp.h"
+#include "group.h"
 #include "player.h"
 #include "team.h"
 #include "user.h"
@@ -31,6 +32,8 @@ bool msg_creation::is_individual(Session& session, const MsgID& id)
         return detail::team_is_individual(session,id);
     case MsgType::user:
         return detail::user_is_individual(session,id);
+    case MsgType::group:
+        return detail::group_is_individual(session,id);
     case MsgType::hotGames:
         return detail::hot_games_individual(session,id);
     case MsgType::locations:
@@ -63,6 +66,8 @@ JSObject msg_creation::make_msg(Session& session, const MsgID& id)
         return detail::team_make_msg(session,id);
     case MsgType::user:
         return detail::user_make_msg(session,id);
+    case MsgType::group:
+        return detail::group_make_msg(session,id);
     case MsgType::hotGames:
         return detail::hot_games(session,id);
     case MsgType::locations:
