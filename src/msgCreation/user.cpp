@@ -26,7 +26,13 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         else  
             out.put("name","xxx");
         out.put("points",user["points"].get<int>());
-        
+        h2rfp::JSObject groups;
+        h2rfp::JSObject item;
+        for (auto group: user["groups"]) {
+            item.put_value(group->index());
+            groups.push_back(std::make_pair("", item));
+        }
+        out.put_child("groups",groups);
         return out;
     }
     else
