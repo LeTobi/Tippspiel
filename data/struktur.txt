@@ -31,11 +31,11 @@ type Player
     int createdAt
     char 100 name
     Team team
+    bool active
 
 type Team
     User creator
     int createdAt
-    Event event
     char 100 name
     char 10 short
     Player [] players

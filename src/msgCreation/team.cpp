@@ -18,7 +18,6 @@ JSObject msg_creation::detail::team_make_msg(Session& session, const MsgID& id)
     out.put("id",team.index());
     out.put("name",team["name"].get<std::string>());
     out.put("short", team["short"].get<std::string>());
-    out.put("event", team["event"]->index());
     h2rfp::JSObject list;
     h2rfp::JSObject item;
     for (auto player: team["players"])

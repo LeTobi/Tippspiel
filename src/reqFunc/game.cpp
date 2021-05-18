@@ -2,6 +2,7 @@
 #include "../misc/response_util.h"
 #include "../main-data.h"
 #include "../dataEdit/game.h"
+#include "../misc/utils.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -94,7 +95,7 @@ void msg_handler::game_announce(Session& session, Message& msg)
             return_client_error(session,msg,"team1 existiert nicht");
             return;
         }
-        if (*team1["event"] != event) {
+        if (!list_contains_cluster(event["teams"],team1)) {
             return_client_error(session,msg,"Das Team1 nimmt nicht an diesem Event teil");
             return;
         }
@@ -104,7 +105,7 @@ void msg_handler::game_announce(Session& session, Message& msg)
             return_client_error(session,msg,"team2 existiert nicht");
             return;
         }
-        if (*team2["event"] != event) {
+        if (!list_contains_cluster(event["teams"],team2)) {
             return_client_error(session,msg,"Das Team2 nimmt nicht an diesem Event teil");
             return;
         }
@@ -114,7 +115,7 @@ void msg_handler::game_announce(Session& session, Message& msg)
             return_client_error(session,msg,"previous1 existiert nicht");
             return;
         }
-        if (*previous1["event"] != event) {
+        if (!list_contains_cluster(event["teams"],previous1)) {
             return_client_error(session,msg,"Die Vorstufe1 gehört nicht zum selben Anlass");
             return;
         }
@@ -128,7 +129,7 @@ void msg_handler::game_announce(Session& session, Message& msg)
             return_client_error(session,msg,"previous2 existiert nicht");
             return;
         }
-        if (*previous2["event"] != event) {
+        if (!list_contains_cluster(event["teams"],previous2)) {
             return_client_error(session,msg,"Die Vorstufe2 gehört nicht zum selben Anlass");
             return;
         }
