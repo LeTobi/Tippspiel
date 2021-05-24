@@ -36,6 +36,14 @@ void msg_handler::make_new_user(Session& session, const Message& msg)
         }
     }
 
+    if (name.size()<4)
+    {
+        h2rfp::JSObject answer = make_user_error(ERROR_USERNAME_TAKEN);
+        answer.put("data.name",name);
+        return_result(session,msg,answer);
+        return;
+    }
+
     session.tasks.registration.make_new_user(name,email,msg.id);
 }
 

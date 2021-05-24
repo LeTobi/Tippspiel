@@ -15,7 +15,7 @@ Database::Cluster data_edit::create_user(const std::string& name, const std::str
     user["perm_eventAnnounce"].set( false );
     user["perm_eventReport"].set( false );
     user["perm_gameAnnounce"].set( false );
-    user["perm_gameReport"].set( true );
+    user["perm_gameReport"].set( false );
     user["perm_groupCreate"].set( true );
     user["perm_console"].set( false );
     return user;
