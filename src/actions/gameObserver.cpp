@@ -13,19 +13,17 @@ void GameObserver::init()
 
 void GameObserver::tick()
 {
-    auto it = maindata->filters.timeline.running_begin;
-    while (it != maindata->filters.timeline.running_end) {
-        if ((**it).cluster["gameStatus"].get<int>() != GSTATUS_RUNNING) {
-            log << "Spiel nr. " << (**it).cluster.index() << " wird aktiv" << std::endl;
-            data_edit::set_game_status((**it).cluster,GSTATUS_RUNNING);
+    for (GameTimeline::Game* game: maindata->filters.timeline.running) {
+        if (game->cluster["gameStatus"].get<int>() != GSTATUS_RUNNING) {
+            log << "Spiel nr. " << game->cluster.index() << " beginnt" << std::endl;
+            data_edit::set_game_status(game->cluster,GSTATUS_RUNNING);
             return; // iteratoren werden ungültig
         }
-        ++it;
     }
-    for (auto gp: maindata->filters.timeline.pending_games) {
-        if (gp->cluster["gameStatus"].get<int>() != GSTATUS_PENDING) {
-            log << "Erwarte Resultate von Spiel nr. " << gp->cluster.index() << std::endl;
-            data_edit::set_game_status(gp->cluster,GSTATUS_PENDING);
+    for (GameTimeline::Game* game: maindata->filters.timeline.pending) {
+        if (game->cluster["gameStatus"].get<int>() != GSTATUS_PENDING) {
+            log << "Erwarte Resultate von Spiel nr. " << game->cluster.index() << std::endl;
+            data_edit::set_game_status(game->cluster,GSTATUS_PENDING);
             return; // iteratoren werden ungültig
         }
     }

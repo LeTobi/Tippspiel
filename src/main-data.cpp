@@ -68,10 +68,20 @@ void MainData::init(int port) {
 
 void MainData::tick()
 {
-    for (Session& sess: sessions)
+    workstate = WORK_STANDBY;
+    for (Session& sess: sessions) {
         sess.tick();
+        if (sess.status==Session::Status::active)
+            request_work(WORK_BUSY);
+    }
     updateTracker.tick();
     filters.tick();
     tasks.tick();
     actions.tick();
+}
+
+void MainData::request_work(int level)
+{
+    if (level<workstate)
+        workstate = level;
 }

@@ -27,14 +27,26 @@ int main(int argc, const char** args)
 
         while (true)
         {
-            std::this_thread::yield();
-
             maindata->tick();
 
             if (!maindata->storage.is_good())
             {
                 maindata->log << "Programm beendet wegen fehler in der Datenbank" << std::endl;
                 break;
+            }
+
+            switch (maindata->workstate) {
+            case WORK_BUSY:
+                std::this_thread::yield();
+                break;
+            case WORK_BACKGROUND:
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                break;
+            case WORK_STANDBY:
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                break;
+            default:
+                throw tobilib::Exception(std::string("Unbekannter workstate: ")+std::to_string(maindata->workstate),"main()");
             }
         }
     }

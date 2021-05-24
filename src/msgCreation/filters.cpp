@@ -14,23 +14,21 @@ JSObject msg_creation::detail::hot_games(Session&, const MsgID&) {
     h2rfp::JSObject uplist;
     h2rfp::JSObject overlist;
     h2rfp::JSObject item;
-    GameTimeline::FinishIterator it2 = maindata->filters.timeline.running_begin;
-    while (it2 != maindata->filters.timeline.running_end) {
-        item.put_value((**it2).cluster.index());
+    for (GameTimeline::Game* game: maindata->filters.timeline.pending) {
+        item.put_value(game->cluster.index());
         uplist.push_back(std::make_pair("",item));
-        ++it2;
     }
-    GameTimeline::StartIterator it1 = maindata->filters.timeline.upcoming_begin;
-    while (it1 != maindata->filters.timeline.upcoming_end) {
-        item.put_value((**it1).cluster.index());
+    for (GameTimeline::Game* game: maindata->filters.timeline.running) {
+        item.put_value(game->cluster.index());
         uplist.push_back(std::make_pair("",item));
-        ++it1;
     }
-    it2 = maindata->filters.timeline.finished_begin;
-    while (it2 != maindata->filters.timeline.finished_end) {
-        item.put_value((**it2).cluster.index());
+    for (GameTimeline::Game* game: maindata->filters.timeline.upcoming) {
+        item.put_value(game->cluster.index());
+        uplist.push_back(std::make_pair("",item));
+    }
+    for (GameTimeline::Game* game: maindata->filters.timeline.finished) {
+        item.put_value(game->cluster.index());
         overlist.push_back(std::make_pair("",item));
-        ++it2;
     }
 
     h2rfp::JSObject out;

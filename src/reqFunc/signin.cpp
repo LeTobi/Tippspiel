@@ -54,7 +54,6 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
     } else {
         answer.put("data.upToDate",false);
     }
-    answer.put("data.upToDate",false);
     data_edit::set_user_sync(session.user,get_time());
     
     return_result(session,msg,answer);

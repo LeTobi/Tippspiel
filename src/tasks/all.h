@@ -2,6 +2,7 @@
 #define TIPPSPIEL_TASKS_ALL_H
 
 class EmailTask;
+class MsgDistributor;
 
 class ServerTasks {
 public:
@@ -14,6 +15,7 @@ public:
     void init();
 
     EmailTask& emails;
+    MsgDistributor& distribution;
 
 };
 

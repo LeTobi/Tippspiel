@@ -2,6 +2,8 @@
 #include "main-data.h"
 #include "sessionTasks/all.h"
 #include "sessionTasks/update.h"
+#include "tasks/all.h"
+#include "tasks/msgDistributor.h"
 #include <map>
 
 using namespace tobilib;
@@ -66,6 +68,11 @@ void UpdateTracker::tick()
 
 void UpdateTracker::update(MsgID id, Time urgency)
 {
+    if (id.type == MsgType::hotGames) {
+        maindata->tasks.distribution.simple_no_response_to_all("HotGames");
+        return;
+    }
+
     current->changes.insert(id);
     Time limit = get_time()+urgency;
     if (current->period_end > limit)
@@ -82,9 +89,11 @@ Time UpdateTracker::horizon() const
 h2rfp::JSObject UpdateTracker::get_history(Time begin) const
 {
     std::set<MsgID> items;
-    const auto it = history.begin();
-    while (it!=history.end() && (**it).period_end>=begin)
+    auto it = history.begin();
+    while (it!=history.end() && (**it).period_end>=begin) {
         items.insert((**it).changes.begin(),(**it).changes.end());
+        ++it;
+    }
     return make_msg(items);
 }
 

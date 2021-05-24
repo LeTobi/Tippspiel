@@ -14,6 +14,12 @@ class DatabaseFilters;
 class ServerTasks;
 class ServerActions;
 
+enum {
+    WORK_BUSY,
+    WORK_BACKGROUND,
+    WORK_STANDBY
+};
+
 class MainData
 {
 public:
@@ -23,10 +29,12 @@ public:
 
     void init(int);
     void tick();
+    void request_work(int);
 
     tobilib::Logger log;
     tobilib::Database storage;
     std::vector<Session> sessions;
+    int workstate = WORK_STANDBY;
 
     MsgCache& cache;
     UpdateTracker& updateTracker;

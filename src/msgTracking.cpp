@@ -3,6 +3,9 @@
 #include "filters/all.h"
 #include "updateTracker.h"
 #include "msgCache.h"
+#include "misc/enums.h"
+
+using namespace tobilib;
 
 void global_message_update(MsgType type, unsigned int arg0, Time urgency)
 {
@@ -33,6 +36,9 @@ void global_message_update(tobilib::Database::Cluster cluster, Time urgency)
     }
     else if (cluster.type().name == "Game") {
         global_message_update(MsgType::game,cluster.index(),urgency);
+        if (cluster["gameStatus"].get<int>() == GSTATUS_RUNNING)
+            for (Database::Member tipp: cluster["tipps"])
+                global_message_update(MsgType::gameTipp,tipp->index(),urgency);
     }
     else if (cluster.type().name == "EventTipp") {
         global_message_update(MsgType::eventTipp,cluster.index(),urgency);
@@ -53,7 +59,7 @@ void global_message_update(FilterID id)
         global_message_update(MsgType::hotGames,0,WAIT_SHORT);
         break;
     case FilterID::games_pending:
-        // no message yet
+        global_message_update(MsgType::hotGames,0,WAIT_SHORT);
         break;
     case FilterID::games_running:
         global_message_update(MsgType::hotGames,0,WAIT_SHORT);
