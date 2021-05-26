@@ -40,6 +40,6 @@ std::string data_edit::make_new_token(Database::Cluster user)
     std::string token = std::to_string(user.index()) + "-";
     token += adjectives[rd()%adjectives.size()];
     token += nouns[rd()%nouns.size()];
-    token += std::to_string(rd()%90 + 10);
+    //token += std::to_string(rd()%90 + 10);
     return token;
 }
