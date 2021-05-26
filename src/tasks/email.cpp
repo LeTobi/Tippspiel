@@ -103,6 +103,8 @@ void EmailTask::send_register_mail()
     reqdata.put("name",params.user["name"].get<std::string>());
     reqdata.put("token",params.new_token);
     reqdata.put("email",params.user["email"].get<std::string>());
+    if (!params.lang.empty())
+        reqdata.put("lang",params.lang);
     send_http_request(path,reqdata);
 }
 
@@ -127,6 +129,8 @@ void EmailTask::send_restore_mail()
     reqdata.put("name",params.user["name"].get<std::string>());
     reqdata.put("token",params.new_token);
     reqdata.put("email",params.user["email"].get<std::string>());
+    if (!params.lang.empty())
+        reqdata.put("lang",params.lang);
     send_http_request(path,reqdata);
 }
 

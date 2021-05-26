@@ -17,6 +17,7 @@ public:
     struct Input {
         Type type;
         std::string new_token;
+        std::string lang;
         tobilib::Database::Cluster user;
     };
 

@@ -35,7 +35,7 @@ bool RegisterTask::pending()
     return task != NO_TASK;
 }
 
-void RegisterTask::make_new_user(const std::string& name, const std::string& email, unsigned int rid)
+void RegisterTask::make_new_user(const std::string& name, const std::string& email, const std::string& lang, unsigned int rid)
 {
     if (pending())
     {
@@ -52,6 +52,7 @@ void RegisterTask::make_new_user(const std::string& name, const std::string& ema
     params.new_token = new_token;
     params.user = new_user;
     params.type = EmailTask::Type::registration;
+    params.lang = lang;
     task = maindata->tasks.emails.tasks.makeTask(params);
 
     session->log << "create_user request: id " << new_user.index() << ", " << name << std::endl;
@@ -81,7 +82,7 @@ bool RestoreTask::pending()
     return task != NO_TASK;
 }
 
-void RestoreTask::restore_token(tobilib::Database::Cluster user, unsigned int rid)
+void RestoreTask::restore_token(tobilib::Database::Cluster user, const std::string& lang, unsigned int rid)
 {
     if (pending())
     {
@@ -96,6 +97,7 @@ void RestoreTask::restore_token(tobilib::Database::Cluster user, unsigned int ri
     EmailTask::Input params;
     params.new_token = new_token;
     params.user = target_user;
+    params.lang = lang;
     params.type = EmailTask::Type::restore_token;
     task = maindata->tasks.emails.tasks.makeTask(params);
 }

@@ -74,6 +74,8 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::restore_token(*this,msg);
     else if (msg.name == "signin")
         msg_handler::signin(*this, msg);
+    else if (msg.name == "signout")
+        msg_handler::signout(*this, msg);
     else if (msg.name == "me")
         msg_handler::inform_identity(*this, msg);
     else if (msg.name == "get_data")

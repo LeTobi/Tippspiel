@@ -17,6 +17,7 @@ void msg_handler::make_new_user(Session& session, const Message& msg)
 
     StringPlus name = msg.data.get("name","");
     StringPlus email = msg.data.get("email","");
+    StringPlus lang = msg.data.get("lang","");
 
     for (Database::Cluster user: maindata->storage.list("User"))
     {
@@ -44,13 +45,14 @@ void msg_handler::make_new_user(Session& session, const Message& msg)
         return;
     }
 
-    session.tasks.registration.make_new_user(name,email,msg.id);
+    session.tasks.registration.make_new_user(name,email,lang,msg.id);
 }
 
 void msg_handler::restore_token(Session& session, const Message& msg)
 {
     Database::Cluster target_user;
     StringPlus email = msg.data.get("email","");
+    StringPlus lang = msg.data.get("lang","");
     if (!email.empty())
     {
         for (Database::Cluster user: maindata->storage.list("User"))
@@ -88,5 +90,5 @@ void msg_handler::restore_token(Session& session, const Message& msg)
     }
     data_edit::set_user_lastrecovery(target_user, get_time());
 
-    session.tasks.token_restore.restore_token(target_user, msg.id);
+    session.tasks.token_restore.restore_token(target_user, lang, msg.id);
 }

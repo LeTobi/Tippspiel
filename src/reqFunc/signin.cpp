@@ -6,6 +6,8 @@
 #include "../misc/time.h"
 #include "../dataEdit/token.h"
 #include "../dataEdit/user.h"
+#include "../sessionTasks/all.h"
+#include "../sessionTasks/signout.h"
 
 using namespace tobilib;
 
@@ -57,4 +59,12 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
     data_edit::set_user_sync(session.user,get_time());
     
     return_result(session,msg,answer);
+}
+
+void msg_handler::signout(Session& session, h2rfp::Message& msg)
+{
+    if (!check_login(session,msg))
+        return;
+    
+    session.tasks.signout.signout(msg.id);
 }

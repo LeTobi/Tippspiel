@@ -6,6 +6,7 @@
 namespace msg_handler {
 
     void signin(Session&, tobilib::h2rfp::Message&);
+    void signout(Session&, tobilib::h2rfp::Message&);
     
 }
 

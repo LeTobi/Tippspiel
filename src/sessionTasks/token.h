@@ -14,7 +14,11 @@ public:
     void tick();
     bool pending();
 
-    void make_new_user(const std::string& name, const std::string& email, unsigned int rid);
+    void make_new_user(
+            const std::string& name,
+            const std::string& email,
+            const std::string& lang,
+            unsigned int rid);
 
 private:
     unsigned int response_id;
@@ -30,7 +34,10 @@ public:
     void tick();
     bool pending();
 
-    void restore_token(tobilib::Database::Cluster user, unsigned int rid);
+    void restore_token(
+        tobilib::Database::Cluster user,
+        const std::string& lang,
+        unsigned int rid);
 
 private:
     unsigned int response_id;

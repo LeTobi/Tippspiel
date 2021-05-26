@@ -4,6 +4,7 @@
 class Session;
 class SessionUpdate;
 class SessionPong;
+class SessionSignout;
 class RegisterTask;
 class RestoreTask;
 
@@ -19,6 +20,7 @@ public:
 
     SessionUpdate& update;
     SessionPong& pong;
+    SessionSignout& signout;
     RegisterTask& registration;
     RestoreTask& token_restore;
 
