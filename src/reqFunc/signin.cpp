@@ -8,6 +8,7 @@
 #include "../dataEdit/user.h"
 #include "../sessionTasks/all.h"
 #include "../sessionTasks/signout.h"
+#include "../sessionTasks/cooldown.h"
 
 using namespace tobilib;
 
@@ -28,13 +29,25 @@ void msg_handler::signin(Session& session, h2rfp::Message& msg)
         return;
     }
 
+    int cooldown = session.tasks.cooldown.login_cooldown_get();
+    if (cooldown>0)
+    {
+        h2rfp::JSObject answer = make_user_error(ERROR_COOLDOWN);
+        answer.put("data.time",interval_to_string(cooldown));
+        return_result(session,msg,answer);
+        return;
+    }
+
     session.user = data_edit::check_token(token);
 
     if (session.user.is_null())
     {
         return_result(session,msg,make_user_error(ERROR_LOGIN_DENIED));
+        session.tasks.cooldown.login_fail();
         return;
     }
+
+    session.tasks.cooldown.login_success();
 
     if (session.user["banned"].get<bool>())
     {

@@ -1,5 +1,6 @@
 #include "token.h"
 #include "../main-data.h"
+#include <tobilib/stringplus/stringplus.h>
 
 using namespace tobilib;
 
@@ -12,7 +13,7 @@ Database::Cluster data_edit::check_token(const std::string& token)
     if (!intstr.isInt())
         return Database::Cluster();
     Database::Cluster user = maindata->storage.list("User")[intstr.toInt()];
-    if (user["token"].get<std::string>() == token)
+    if (StringPlus(user["token"].get<std::string>()).toLowerCase() == StringPlus(token).toLowerCase())
         return user;
     else
         return Database::Cluster();

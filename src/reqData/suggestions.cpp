@@ -28,7 +28,7 @@ void msg_handler::suggest_players(Session& session, const Message& msg)
         "data",
         maindata->cache.get_data(
             session,
-            MsgID(MsgType::gamePlayers,game.index())
+            MsgID(MsgType::player_suggestions,game.index())
             )
         );
     return_result(session,msg,answer);

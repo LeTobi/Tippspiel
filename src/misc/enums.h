@@ -50,7 +50,7 @@ enum ErrCode {
     ERROR_ALREADY_RUNNING   = 8,  // Der Prozess läuft bereits
     ERROR_EMAIL_NOT_FOUND   = 9,  // {email} wurde nicht gefunden
     ERROR_BANNED            = 10, // Nutzer ist durch Admins vom Spiel ausgeschlossen
-    ERROR_COOLDOWN          = 11, // Die Funktion ist nur begrenzt aufrufbar
+    ERROR_COOLDOWN          = 11, // Die Funktion ist erst wieder in {time} verfügbar
     ERROR_GROUP_NOT_FOUND   = 12  // Der Beitrittscode ist ungültig
 };
 

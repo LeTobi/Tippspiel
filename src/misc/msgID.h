@@ -9,7 +9,8 @@ enum class FilterID {
     games_upcoming,
     games_running,
     games_pending,
-    games_finished
+    games_finished,
+    player_suggestions
 };
 
 // identifiziert die Art von server-internen Nachrichtenpaketen
@@ -25,7 +26,7 @@ enum class MsgType {
     gameTipp,
     locations,
     hotGames,
-    gamePlayers,
+    player_suggestions,
     eventRank
 };
 

@@ -16,6 +16,7 @@ Database::Cluster data_edit::create_player(
         player["createdAt"].set( get_time() );
         player["name"].set( name );
         player["team"].set( team );
+        player["active"].set( true );
         team["players"].emplace().set( player );
     maindata->storage.end_critical_operation(lock);
 
@@ -23,6 +24,7 @@ Database::Cluster data_edit::create_player(
 
     global_message_update(player, WAIT_LONG);
     global_message_update(team, WAIT_LONG);
+    global_message_update(FilterID::player_suggestions);
 
     return player;
 }
