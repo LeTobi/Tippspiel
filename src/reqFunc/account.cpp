@@ -82,7 +82,7 @@ void msg_handler::restore_token(Session& session, const Message& msg)
     }
 
     Time lastrecovery = target_user["lastrecovery"].get<int>();
-    int cooldown = get_time() - lastrecovery - 15*60;
+    int cooldown = lastrecovery + 15*60 - get_time();
     if (cooldown > 0)
     {
         h2rfp::JSObject answer = make_user_error(ERROR_COOLDOWN);
