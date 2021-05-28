@@ -68,16 +68,16 @@ void MainData::init(int port) {
 
 void MainData::tick()
 {
+    int previous_work = workstate;
     workstate = WORK_STANDBY;
-    for (Session& sess: sessions) {
+    for (Session& sess: sessions)
         sess.tick();
-        if (sess.status==Session::Status::active)
-            request_work(WORK_BUSY);
-    }
     updateTracker.tick();
     filters.tick();
     tasks.tick();
     actions.tick();
+    if (workstate != previous_work)
+        log << "Workload changed " << previous_work << " -> " << workstate << std::endl;
 }
 
 void MainData::request_work(int level)

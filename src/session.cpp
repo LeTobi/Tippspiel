@@ -5,6 +5,7 @@
 #include "misc/response_util.h"
 #include "sessionTasks/all.h"
 #include "sessionTasks/pong.h"
+#include "sessionTasks/cooldown.h"
 
 using namespace tobilib;
 
@@ -57,6 +58,8 @@ void Session::tick()
         client.connect();
         status = Status::inactive;
     }
+
+    maindata->request_work(tasks.cooldown.session_usage());
 }
 
 void Session::on_connect()

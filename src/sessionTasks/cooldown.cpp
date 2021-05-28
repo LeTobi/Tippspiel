@@ -1,18 +1,31 @@
 #include "cooldown.h"
 #include <algorithm>
 #include "../session.h"
+#include "../main-data.h"
 
+const int SESSION_USAGE_COOLDOWN = 60;
 const int LOGIN_COOLDOWN_TIME = 60;
 const int FREE_LOGIN_TRIES = 5;
 
 void SessionCooldown::tick()
 {
-    // nichts
+    if (session->status == Session::Status::active)
+        usage_last = get_time();
 }
 
 bool SessionCooldown::pending() const
 {
     return false;
+}
+
+int SessionCooldown::session_usage() const
+{
+    if (get_time() - usage_last < SESSION_USAGE_COOLDOWN)
+        return WORK_BUSY;
+    else if (session->status == Session::Status::cleanup)
+        return WORK_BACKGROUND;
+    else
+        return WORK_STANDBY;
 }
 
 void SessionCooldown::login_success()
