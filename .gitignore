@@ -1,4 +1,5 @@
 /src/build/**
 /data/**
-/config/**
 !/data/struktur.txt
+/db-surgery/build/**
+/.vscode

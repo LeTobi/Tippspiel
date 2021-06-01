@@ -1,26 +1,29 @@
 type User
     int registerdate
+    int lastlogin
     int lastupdate
+    int lastrecovery
     char 50 email
     char 100 name
     char 100 token
-    GameTipp [] gameTipps
-    EventTipp [] eventTipps
-    Group [] groups
+    Rank [] ranks
     int points
+    Group [] groups
     User invitor
     bool perm_eventAnnounce
     bool perm_eventReport
     bool perm_gameAnnounce
     bool perm_gameReport
+    bool perm_groupCreate
     bool perm_console
+    bool banned
 
 type Group
     User creator
-    User owner
     int createdAt
+    char 20 token
     char 100 name
-    char 100 token
+    User admin
     User [] users
 
 type Player
@@ -28,11 +31,11 @@ type Player
     int createdAt
     char 100 name
     Team team
+    bool active
 
 type Team
     User creator
     int createdAt
-    Event event
     char 100 name
     char 10 short
     Player [] players
@@ -53,6 +56,8 @@ type Event
     Team [] teams
     Game [] games
     EventTipp [] tipps
+    int tippcount
+    Rank [] ranks
     Team winner
     Player topscorer
 
@@ -63,11 +68,13 @@ type EventTipp
     Team winner
     Player topscorer
     int reward
+    Rank rank
 
 type Game
     User creator
-    int createdAt
     User reporter
+    int createdAt
+    int reportedAt
     int start
     Location location
     char 100 name
@@ -79,7 +86,9 @@ type Game
     int 2 scores
     int 2 penalty
     Player [] scorers
+    Team winner
     GameTipp [] tipps
+    int tippcount
     Game 2 previousStage
     Game nextStage
 
@@ -90,4 +99,16 @@ type GameTipp
     int 2 bet
     Team winner
     Player topscorer
+    int tippkat
+    int goals
+    bool penaltyBonus
     int reward
+    Rank rank
+
+type Rank
+    Event event
+    User user
+    GameTipp [] gametipps
+    EventTipp eventtipp
+    int points
+    int tippcount

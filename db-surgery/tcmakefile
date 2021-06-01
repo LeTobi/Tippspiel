@@ -1,0 +1,4 @@
+selection build
+    exe surgery main.cpp
+    link tc
+    
