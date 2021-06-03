@@ -30,6 +30,9 @@ void msg_handler::console_input(Session& session, const h2rfp::Message& msg)
     else if (cmd=="guard") {
         cmd_guard(session,msg,rest);
     }
+    else if (cmd=="mod") {
+        cmd_mod(session,msg,rest);
+    }
     else {
         cmd_echo(session,msg,std::string("unbekannter befehl: ")+cmd);
     }

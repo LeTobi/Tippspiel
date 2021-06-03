@@ -167,6 +167,40 @@ void data_edit::report_game(
         const std::vector<tobilib::Database::Cluster>& scorers
         )
 {
+    FlagRequest lock = maindata->storage.begin_critical_operation();
+
+        game["reporter"].set( user );
+        game["reportedAt"].set( get_time() );
+        game["gameStatus"].set( GSTATUS_ENDED );
+        game["phase"].set( phase );
+        game["scores"][0].set( score1 );
+        game["scores"][1].set( score2 );
+        game["penalty"][0].set( penalty1 );
+        game["penalty"][1].set( penalty2 );
+
+        Database::Member db_scorers = game["scorers"];
+        while (db_scorers.begin() != db_scorers.end())
+            db_scorers.erase(db_scorers.begin());
+        for (tobilib::Database::Cluster scorer: scorers)
+            db_scorers.emplace().set( scorer );
+
+    maindata->storage.end_critical_operation(lock);
+
+    game_evaluate(game);
+    global_message_update(game,WAIT_SHORT);
+}
+
+void data_edit::game_evaluate(Database::Cluster game)
+{
+    int phase = game["phase"].get<int>();
+    int score1 = game["scores"][0].get<int>();
+    int score2 = game["scores"][1].get<int>();
+    int penalty1 = game["penalty"][0].get<int>();
+    int penalty2 = game["penalty"][1].get<int>();
+    Database::Member db_scorers = game["scorers"];
+    Database::Member db_tipps = game["tipps"];
+    bool is_penalty = score1==score2;
+
     Database::Cluster winnerteam;
     if (score1>score2)
         winnerteam = *game["teams"][0];
@@ -180,51 +214,38 @@ void data_edit::report_game(
     }
 
     struct TippResult {
-        int tippkat = TIPPKAT_WRONG;
+        bool team;
+        bool diff;
+        bool exact;
+        bool draw;
         int goals = 0;
-        bool bonus = false;
     };
     
     std::vector<TippResult> results;
-    for (Database::Member tipp: game["tipps"])
+    for (Database::Member tipp: db_tipps)
     {
         TippResult res;
         int tscore1 = tipp["bet"][0].get<int>();
         int tscore2 = tipp["bet"][1].get<int>();
         Database::Cluster twinner = *tipp["winner"];
         Database::Cluster tscorer = *tipp["topscorer"];
-        if (score1<score2 == tscore1<tscore2 && score1>score2 == tscore1>tscore2)
-            res.tippkat = TIPPKAT_TEAM;
-        if (score1-score2 == tscore1-tscore2)
-            res.tippkat = TIPPKAT_DIFF;
-        if (score1==tscore1 && score2==tscore2)
-            res.tippkat = TIPPKAT_EXACT;
-        if (phase >= GAMEPHASE_PENALTY && tscore1==tscore2 && winnerteam==twinner)
-            res.bonus = true;
-        for (Database::Cluster scorer: scorers)
-            if (tscorer==scorer)
+        bool t_is_penalty = tscore1==tscore2;
+
+        res.team = (!is_penalty && !t_is_penalty && (twinner == winnerteam)) || (is_penalty && t_is_penalty);
+        res.diff = score1-score2 == tscore1-tscore2;
+        res.exact = score1==tscore1 && score2==tscore2;
+        res.draw = phase >= GAMEPHASE_PENALTY && is_penalty && t_is_penalty;
+        for (Database::Member scorer: db_scorers)
+            if (*scorer==tscorer)
                 res.goals++;
         results.push_back(res);
     }
 
     FlagRequest lock = maindata->storage.begin_critical_operation();
-        game["reporter"].set( user );
-        game["reportedAt"].set( get_time() );
-        game["gameStatus"].set( GSTATUS_ENDED );
-        game["phase"].set( phase );
-        game["scores"][0].set( score1 );
-        game["scores"][1].set( score2 );
-        game["penalty"][0].set( penalty1 );
-        game["penalty"][1].set( penalty2 );
         game["winner"].set( winnerteam );
-        Database::Member db_scorers = game["scorers"];
-        while (db_scorers.begin() != db_scorers.end())
-            db_scorers.erase(db_scorers.begin());
-        for (tobilib::Database::Cluster scorer: scorers)
-            db_scorers.emplace().set( scorer );
         auto it = results.begin();
-        for (Database::Member tippptr: game["tipps"]) {
-            tipp_set_result(*tippptr,it->tippkat,it->goals,it->bonus);
+        for (Database::Member tippptr: db_tipps) {
+            tipp_set_result(*tippptr,it->team,it->diff,it->exact,it->draw,it->goals);
             ++it;
         }
         game_fetch_stage(*game["nextStage"]);

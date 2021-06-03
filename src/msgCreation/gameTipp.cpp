@@ -1,6 +1,7 @@
 #include "gameTipp.h"
 #include "../main-data.h"
 #include "../misc/time.h"
+#include "../misc/enums.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -23,10 +24,13 @@ JSObject msg_creation::detail::gametipp_make_msg(Session& session, const MsgID& 
     out.put("id",gtipp.index());
     out.put("game",gtipp["game"]->index());
     out.put("user",gtipp["user"]->index());
-    out.put("reward",gtipp["reward"].get<int>());
-    out.put("tippkat",gtipp["tippkat"].get<int>());
-    out.put("goals",gtipp["goals"].get<int>());
-    out.put("bonus",gtipp["penaltyBonus"].get<bool>());
+    out.put("processed",gtipp["game"]["gameStatus"].get<int>()==GSTATUS_ENDED);
+    out.put("reward.team",gtipp["reward_team"].get<bool>());
+    out.put("reward.diff",gtipp["reward_diff"].get<bool>());
+    out.put("reward.exact",gtipp["reward_exact"].get<bool>());
+    out.put("reward.draw",gtipp["reward_draw"].get<bool>());
+    out.put("reward.scorer",gtipp["reward_scorer"].get<int>());
+    out.put("reward.sum",gtipp["reward"].get<int>());
 
     if (gtipp["game"]["start"].get<int>() > get_time()
         && *gtipp["user"] != session.user)

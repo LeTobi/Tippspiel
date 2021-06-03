@@ -54,6 +54,8 @@ namespace data_edit
         const std::vector<tobilib::Database::Cluster>& scorers
         );
 
+    void game_evaluate(tobilib::Database::Cluster game);
+
     void game_fetch_stage(tobilib::Database::Cluster game);
 }
 

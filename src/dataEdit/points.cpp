@@ -29,29 +29,17 @@ Database::Cluster data_edit::get_rank(Database::Cluster user, Database::Cluster 
     return rank;
 }
 
-void data_edit::tipp_set_result(
-    Database::Cluster tipp,
-    int kategorie,
-    int goals,
-    bool penaltyBonus)
+void data_edit::tipp_set_result(Database::Cluster tipp, bool team, bool diff, bool exact, bool draw, int scorer)
 {
-    int points = goals;
-    switch (kategorie)
-    {
-    case TIPPKAT_WRONG:
-        break;
-    case TIPPKAT_TEAM:
-        points+=1;
-        break;
-    case TIPPKAT_DIFF:
-        points+=2;
-        break;
-    case TIPPKAT_EXACT:
-        points+=4;
-        break;
-    }
-    if (penaltyBonus)
-        points+=1;
+    int points = scorer;
+    if (team)
+        points += 1;
+    if (diff)
+        points += 1;
+    if (exact)
+        points += 2;
+    if (draw)
+        points += 2;
 
     int old_points_tipp = tipp["reward"].get<int>();
     int old_points_user = tipp["user"]["points"].get<int>();
@@ -59,9 +47,11 @@ void data_edit::tipp_set_result(
     int delta_points = points - old_points_tipp;
 
     FlagRequest lock = maindata->storage.begin_critical_operation();
-        tipp["tippkat"].set( kategorie );
-        tipp["goals"].set( goals );
-        tipp["penaltyBonus"].set( penaltyBonus );
+        tipp["reward_team"].set( team );
+        tipp["reward_diff"].set( diff );
+        tipp["reward_exact"].set( exact );
+        tipp["reward_draw"].set( draw );
+        tipp["reward_scorer"].set( scorer );
         tipp["reward"].set(points);
         tipp["user"]["points"].set( old_points_user + delta_points);
         tipp["rank"]["points"].set( old_points_rank + delta_points);

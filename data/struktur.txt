@@ -99,9 +99,11 @@ type GameTipp
     int 2 bet
     Team winner
     Player topscorer
-    int tippkat
-    int goals
-    bool penaltyBonus
+    bool reward_team
+    bool reward_diff
+    bool reward_exact
+    bool reward_draw
+    int reward_scorer
     int reward
     Rank rank
 
