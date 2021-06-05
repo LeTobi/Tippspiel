@@ -7,7 +7,6 @@ type User
     char 100 name
     char 100 token
     Rank [] ranks
-    int points
     Group [] groups
     User invitor
     bool perm_eventAnnounce

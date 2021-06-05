@@ -25,6 +25,8 @@ namespace data_edit
         const std::string& name);
 
     tobilib::Database::Cluster create_game();
+    void delete_game(tobilib::Database::Cluster);
+    void delete_game_tipp(tobilib::Database::Cluster);
 
     void announce_game(
         tobilib::Database::Cluster user,

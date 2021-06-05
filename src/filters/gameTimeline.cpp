@@ -216,5 +216,46 @@ void GameTimeline::update(Database::Cluster cluster)
 
 void GameTimeline::remove(Database::Cluster cluster)
 {
-    //TODO
+    if (games.count(cluster)==0)
+        return;
+    auto game_iter = games.find(cluster);
+    auto future_iter = future.find(game_iter->second);
+    auto upcoming_iter = upcoming.find(game_iter->second);
+    auto running_iter = running.find(game_iter->second);
+    auto pending_iter = pending.find(game_iter->second);
+    auto finished_iter = finished.find(game_iter->second);
+
+    if (future_iter != future.end())
+    {
+        future.erase(future_iter);
+    }
+    if (upcoming_iter != upcoming.end())
+    {
+        upcoming.erase(upcoming_iter);
+        if (!future.empty())
+        {
+            upcoming.insert(*future.begin());
+            future.erase(future.begin());
+        }
+        global_message_update(FilterID::games_upcoming);
+    }
+    if (running_iter != running.end())
+    {
+        running.erase(running_iter);
+        global_message_update(FilterID::games_running);
+    }
+    if (pending_iter != pending.end())
+    {
+        pending.erase(pending_iter);
+        global_message_update(FilterID::games_pending);
+    }
+    if (finished_iter != finished.end())
+    {
+        finished.erase(finished_iter);
+        global_message_update(FilterID::games_finished);
+        // hier könnte die finished.size() kleiner als gewollt werden. Aber egal.
+    }
+
+    delete game_iter->second;
+    games.erase(game_iter);
 }

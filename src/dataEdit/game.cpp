@@ -83,6 +83,55 @@ Database::Cluster data_edit::create_game()
     return maindata->storage.list("Game").emplace();
 }
 
+void data_edit::delete_game(Database::Cluster game)
+{
+    FlagRequest lock = maindata->storage.begin_critical_operation();
+        Database::Cluster event = *game["event"];
+        game["event"].set( Database::Cluster() );
+        event["games"].erase( game );
+        Database::Member tipps = game["tipps"];
+        while (tipps.begin() != tipps.end())
+            delete_game_tipp(**tipps.begin());
+        if (*game["nextStage"]["previousStage"][0] == game)
+            game["nextStage"]["previousStage"][0].set( Database::Cluster() );
+        if (*game["nextStage"]["previousStage"][1] == game)
+            game["nextStage"]["previousStage"][1].set( Database::Cluster() );
+        game["nextStage"].set( Database::Cluster() );
+        game["previousStage"][0]["nextStage"].set( Database::Cluster() );
+        game["previousStage"][1]["nextStage"].set( Database::Cluster() );
+        game["previousStage"][0].set( Database::Cluster() );
+        game["previousStage"][1].set( Database::Cluster() );
+
+        global_message_delete(game);
+        game.erase();
+    maindata->storage.end_critical_operation(lock);
+
+    global_message_update(event,WAIT_NOT);
+}
+
+void data_edit::delete_game_tipp(Database::Cluster gametipp)
+{
+    FlagRequest lock = maindata->storage.begin_critical_operation();
+        Database::Cluster game = *gametipp["game"];
+        Database::Cluster rank = *gametipp["rank"];
+
+        gametipp["game"]["tipps"].erase( gametipp );
+        gametipp["game"]["tippcount"].set( gametipp["game"]["tippcount"].get<int>() - 1);
+        gametipp["game"].set( Database::Cluster() );
+        int reward = gametipp["reward"].get<int>();
+        gametipp["rank"]["points"].set( gametipp["rank"]["points"].get<int>() - reward );
+        gametipp["rank"]["tippcount"].set( gametipp["rank"]["tippcount"].get<int>() - 1);
+        gametipp["rank"]["gametipps"].erase( gametipp );
+        gametipp["rank"].set( Database::Cluster() );
+
+        global_message_delete(gametipp);
+        gametipp.erase();
+    maindata->storage.end_critical_operation(lock);
+
+    global_message_update(game, WAIT_NOT);
+    global_message_update(rank, WAIT_NOT);
+}
+
 void data_edit::announce_game(
     tobilib::Database::Cluster user,
     tobilib::Database::Cluster game,

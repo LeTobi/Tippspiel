@@ -99,6 +99,8 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::game_shift_phase(*this,msg);
     else if (msg.name == "reportGame")
         msg_handler::game_report(*this,msg);
+    else if (msg.name == "eventTipp")
+        msg_handler::event_tipp(*this,msg);
     else if (msg.name == "group_create")
         msg_handler::group_create(*this,msg);
     else if (msg.name == "group_rename")

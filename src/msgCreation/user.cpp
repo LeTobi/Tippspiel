@@ -13,6 +13,10 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
 {
     Database::Cluster user = maindata->storage.list("User")[id.arg0];
 
+    int points = 0;
+    for (Database::Member rank: user["ranks"])
+        points += rank["points"].get<int>();
+
     if (user != session.user)
     {
         h2rfp::JSObject out;
@@ -25,7 +29,7 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
             out.put("name",user["name"].get<std::string>());
         else  
             out.put("name","xxx");
-        out.put("points",user["points"].get<int>());
+        out.put("points",points);
         h2rfp::JSObject groups;
         h2rfp::JSObject item;
         for (auto group: user["groups"]) {
@@ -62,7 +66,7 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         answer.add_child("eventTipps",etipps);
         answer.add_child("gameTipps",gtipps);
         answer.add_child("groups",groups);
-        answer.put("points", user["points"].get<int>());
+        answer.put("points", points);
         answer.put("permission.eventAnnounce", user["perm_eventAnnounce"].get<bool>());
         answer.put("permission.eventReport",   user["perm_eventReport"].get<bool>());
         answer.put("permission.gameAnnounce",  user["perm_gameAnnounce"].get<bool>());

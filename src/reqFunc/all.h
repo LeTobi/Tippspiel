@@ -4,3 +4,4 @@
 #include "console.h"
 #include "account.h"
 #include "group.h"
+#include "event.h"

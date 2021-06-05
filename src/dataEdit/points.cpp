@@ -42,7 +42,6 @@ void data_edit::tipp_set_result(Database::Cluster tipp, bool team, bool diff, bo
         points += 2;
 
     int old_points_tipp = tipp["reward"].get<int>();
-    int old_points_user = tipp["user"]["points"].get<int>();
     int old_points_rank = tipp["rank"]["points"].get<int>();
     int delta_points = points - old_points_tipp;
 
@@ -53,7 +52,6 @@ void data_edit::tipp_set_result(Database::Cluster tipp, bool team, bool diff, bo
         tipp["reward_draw"].set( draw );
         tipp["reward_scorer"].set( scorer );
         tipp["reward"].set(points);
-        tipp["user"]["points"].set( old_points_user + delta_points);
         tipp["rank"]["points"].set( old_points_rank + delta_points);
     maindata->storage.end_critical_operation(lock);
 

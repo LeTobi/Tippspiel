@@ -14,6 +14,11 @@ void global_message_update(MsgType type, unsigned int arg0, Time urgency)
     maindata->cache.remove(id);
 }
 
+void global_message_delete(tobilib::Database::Cluster cluster)
+{
+    maindata->filters.remove(cluster);
+}
+
 void global_message_update(tobilib::Database::Cluster cluster, Time urgency)
 {
     maindata->log << "update urgency: " << urgency << std::endl;
@@ -48,6 +53,7 @@ void global_message_update(tobilib::Database::Cluster cluster, Time urgency)
     }
     else if (cluster.type().name == "Rank") {
         global_message_update(MsgType::eventRank,cluster["event"]->index(),urgency);
+        global_message_update(*cluster["user"],urgency); // weil die punkte im user synchronisiert werden
     }
 }
 

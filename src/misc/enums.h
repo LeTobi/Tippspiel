@@ -44,7 +44,8 @@ enum ErrCode {
     ERROR_EMAIL_NOT_FOUND   = 9,  // {email} wurde nicht gefunden
     ERROR_BANNED            = 10, // Nutzer ist durch Admins vom Spiel ausgeschlossen
     ERROR_COOLDOWN          = 11, // Die Funktion ist erst wieder in {time} verfügbar
-    ERROR_GROUP_NOT_FOUND   = 12  // Der Beitrittscode ist ungültig
+    ERROR_GROUP_NOT_FOUND   = 12, // Der Beitrittscode ist ungültig
+    ERROR_EVENTTIPPS_LOCKED = 13  // Es kann nicht mehr auf den Anlass getippt werden.
 };
 
 #endif
