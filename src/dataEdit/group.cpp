@@ -13,6 +13,7 @@ Database::Cluster data_edit::group_create(tobilib::Database::Cluster admin, std:
         Database::Cluster group = maindata->storage.list("Group").emplace();
         group["createdAt"].set( get_time() );
         group["creator"].set( admin );
+        group["namegiver"].set( admin );
         group["admin"].set( admin );
         group["users"].emplace().set( admin );
         group["name"].set( name );
@@ -32,6 +33,7 @@ void data_edit::group_rename(tobilib::Database::Cluster group, std::string name)
 {
     maindata->log << "Gruppe " << group.index() << " wird umbenannt: " << group["name"].get<std::string>() << " -> " << name << std::endl;
     group["name"].set( name );
+    group["namegiver"].set( *group["admin"] );
 
     global_message_update(group,WAIT_LONG);
 }

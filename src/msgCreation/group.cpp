@@ -18,6 +18,7 @@ JSObject msg_creation::detail::group_make_msg(Session& session, const MsgID& id)
         return out;
     out.put("id",group.index());
     out.put("name",group["name"].get<std::string>());
+    out.put("image",group["image"].get<std::string>());
     out.put("admin",group["admin"]->index());
     h2rfp::JSObject members;
     for (auto member: group["users"]) {
