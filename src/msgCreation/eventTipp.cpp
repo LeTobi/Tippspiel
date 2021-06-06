@@ -1,6 +1,7 @@
 #include "eventTipp.h"
 #include "../main-data.h"
 #include "../misc/time.h"
+#include "../misc/enums.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -23,7 +24,10 @@ JSObject msg_creation::detail::eventtipp_make_msg(Session& session, const MsgID&
     out.put("id",etipp.index());
     out.put("event",etipp["event"]->index());
     out.put("user",etipp["user"]->index());
-    out.put("reward",etipp["reward"].get<int>());
+    out.put("reward.sum",etipp["reward"].get<int>());
+    out.put("reward.winner",etipp["reward_winner"].get<bool>());
+    out.put("reward.topscorer",etipp["reward_topscorer"].get<bool>());
+    out.put("processed", etipp["event"]["eventStatus"].get<int>() == GSTATUS_ENDED);
 
     if (etipp["event"]["deadline"].get<int>() > get_time()
         && *etipp["user"] != session.user)

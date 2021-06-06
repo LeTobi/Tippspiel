@@ -51,8 +51,10 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
                 item.put_value(gtipp->index());
                 gtipps.push_back(std::make_pair("", item));
             }
-            item.put_value(rank["eventtipp"]->index());
-            etipps.push_back(std::make_pair("", item));
+            if (!rank["eventtipp"]->is_null()) {
+                item.put_value(rank["eventtipp"]->index());
+                etipps.push_back(std::make_pair("", item));
+            }
         }
         for (auto group: user["groups"]) {
             item.put_value(group->index());

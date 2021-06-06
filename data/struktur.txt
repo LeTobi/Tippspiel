@@ -68,6 +68,8 @@ type EventTipp
     int createdAt
     Team winner
     Player topscorer
+    bool reward_winner
+    bool reward_topscorer
     int reward
     Rank rank
 

@@ -30,5 +30,7 @@ void msg_handler::event_tipp(Session& session, Message& msg)
     Database::Cluster tipp = data_edit::get_event_tipp(session.user,event,true);
     data_edit::set_event_tipp(tipp,winner,topscorer);
 
-    return_result(session,msg,make_result());
+    JSObject answer = make_result();
+    answer.put("data.id",tipp.index());
+    return_result(session,msg,answer);
 }

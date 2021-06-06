@@ -18,6 +18,8 @@ Database::Cluster data_edit::get_event_tipp(Database::Cluster user, Database::Cl
         
         FlagRequest lock = maindata->storage.begin_critical_operation();
             tipp = maindata->storage.list("EventTipp").emplace();
+            tipp["user"].set( user );
+            tipp["event"].set( event );
             rank["eventtipp"].set( tipp );
         maindata->storage.end_critical_operation(lock);
 
