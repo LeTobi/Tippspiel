@@ -36,9 +36,11 @@ JSObject msg_creation::detail::event_make_msg(Session& session, const MsgID& id)
     }
     out.put_child("teams",list);
     list.clear();
-    for (auto tipp: event["tipps"])
+    for (auto rank: event["ranks"])
     {
-        item.put_value(tipp->index());
+        if (rank["eventtipp"]->is_null())
+            continue;
+        item.put_value(rank["eventtipp"]->index());
         list.push_back(std::make_pair("",item));
     }
     out.put_child("tipps",list);

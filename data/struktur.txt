@@ -56,7 +56,6 @@ type Event
     int eventStatus
     Team [] teams
     Game [] games
-    EventTipp [] tipps
     int tippcount
     Rank [] ranks
     Team winner
