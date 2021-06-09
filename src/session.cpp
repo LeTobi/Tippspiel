@@ -97,6 +97,8 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::game_announce(*this,msg);
     else if (msg.name == "nextPhase")
         msg_handler::game_shift_phase(*this,msg);
+    else if (msg.name == "goalObserve")
+        msg_handler::game_goal(*this, msg);
     else if (msg.name == "reportGame")
         msg_handler::game_report(*this,msg);
     else if (msg.name == "eventTipp")

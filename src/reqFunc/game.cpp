@@ -3,6 +3,7 @@
 #include "../main-data.h"
 #include "../dataEdit/game.h"
 #include "../misc/utils.h"
+#include "../msgTracking.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -193,6 +194,7 @@ void msg_handler::game_announce(Session& session, Message& msg)
 void msg_handler::game_shift_phase(Session& session, Message& msg)
 {
     if (!check_login(session,msg)
+        || !check_permission(session,msg,"perm_gameObserve")
         || !check_parameter(session,msg,"game"))
         return;
     
@@ -209,10 +211,70 @@ void msg_handler::game_shift_phase(Session& session, Message& msg)
     return_result(session,msg,make_result());
 }
 
+void msg_handler::game_goal(Session& session, Message& msg)
+{
+    if (!check_login(session,msg)
+        || !check_permission(session,msg,"perm_liveReport")
+        || !check_parameter(session,msg,"game")
+        || !check_parameter(session,msg,"player")
+        || !check_parameter(session,msg,"team")
+        || !check_parameter(session,msg,"penalty"))
+        return;
+
+    Database::Cluster game = maindata->storage.list("Game")[msg.data.get("game",0)];
+    Database::Cluster player = maindata->storage.list("Player")[msg.data.get("player",0)];
+    Database::Cluster team = maindata->storage.list("Team")[msg.data.get("team",0)];
+    bool penalty = msg.data.get("penalty",false);
+
+    if (game.is_null())
+    {
+        return_client_error(session,msg,"Das spiel wurde nicht gefunden");
+        return;
+    }
+    if (game["gameStatus"].get<int>() != GSTATUS_RUNNING && game["gameStatus"].get<int>() != GSTATUS_PENDING)
+    {
+        return_client_error(session,msg,"Das Spiel ist nicht am laufen");
+        return;
+    }
+    if (player.is_null())
+    {
+        return_client_error(session,msg,"Der spieler wurde nicht gefunden");
+        return;
+    }
+    if (team.is_null())
+    {
+        return_client_error(session,msg,"Das Team wurde nicht gefunden");
+        return;
+    }
+
+    // HINWEIS
+    // Die folgenden Zeilen sollten eigentlich über data_edit gehen. Aber scheiss drauf
+
+    Database::Member scorecount;
+    if (*game["teams"][0] == team) {
+        scorecount = penalty ? game["penalty"][0] : game["scores"][0];
+    }
+    else if (*game["teams"][1] == team) {
+        scorecount = penalty ? game["penalty"][1] : game["scores"][1];
+    }
+    else {
+        return_client_error(session,msg,"Das team nimmt nicht am spiel teil");
+        return;
+    }
+
+    scorecount.set( scorecount.get<int>() + 1);
+    if (!penalty)
+        game["scorers"].emplace().set( player );
+
+
+    global_message_update(game,WAIT_NOT);
+    return_result(session,msg,make_result());
+}
+
 void msg_handler::game_report(Session& session, Message& msg)
 {
     if (!check_login(session,msg) ||
-        !check_permission(session,msg,"perm_gameReport") ||
+        !check_permission(session,msg,"perm_liveReport") ||
         !check_parameter(session,msg,"game") ||
         !check_parameter(session,msg,"phase") ||
         !check_parameter(session,msg,"score1") ||

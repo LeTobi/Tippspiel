@@ -72,6 +72,7 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         answer.put("permission.eventAnnounce", user["perm_eventAnnounce"].get<bool>());
         answer.put("permission.eventReport",   user["perm_eventReport"].get<bool>());
         answer.put("permission.gameAnnounce",  user["perm_gameAnnounce"].get<bool>());
+        answer.put("permission.liveReport",    user["perm_liveReport"].get<bool>());
         answer.put("permission.gameReport",    user["perm_gameReport"].get<bool>());
         answer.put("permission.groupCreate",   user["perm_groupCreate"].get<bool>());
         answer.put("permission.console",       user["perm_console"].get<bool>());

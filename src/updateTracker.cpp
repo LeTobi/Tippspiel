@@ -72,6 +72,12 @@ void UpdateTracker::update(MsgID id, Time urgency)
         maindata->tasks.distribution.simple_no_response_to_all("HotGames");
         return;
     }
+    if (id.type == MsgType::eventRank) {
+        h2rfp::JSObject data;
+        data.put("event", id.arg0);
+        maindata->tasks.distribution.data_no_response_to_all("RankUpdate",data);
+        return;
+    }
 
     current->changes.insert(id);
     Time limit = get_time()+urgency;

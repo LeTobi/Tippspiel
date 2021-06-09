@@ -12,6 +12,7 @@ type User
     bool perm_eventAnnounce
     bool perm_eventReport
     bool perm_gameAnnounce
+    bool perm_liveReport
     bool perm_gameReport
     bool perm_groupCreate
     bool perm_console
