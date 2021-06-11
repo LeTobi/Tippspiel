@@ -196,7 +196,7 @@ void msg_handler::game_announce(Session& session, Message& msg)
 void msg_handler::game_shift_phase(Session& session, Message& msg)
 {
     if (!check_login(session,msg)
-        || !check_permission(session,msg,"perm_gameObserve")
+        || !check_permission(session,msg,"perm_liveReport")
         || !check_parameter(session,msg,"game"))
         return;
     
@@ -276,7 +276,7 @@ void msg_handler::game_goal(Session& session, Message& msg)
 void msg_handler::game_report(Session& session, Message& msg)
 {
     if (!check_login(session,msg) ||
-        !check_permission(session,msg,"perm_liveReport") ||
+        !check_permission(session,msg,"perm_gameReport") ||
         !check_parameter(session,msg,"game") ||
         !check_parameter(session,msg,"phase") ||
         !check_parameter(session,msg,"score1") ||
