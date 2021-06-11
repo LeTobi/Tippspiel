@@ -4,6 +4,8 @@
 #include "../dataEdit/game.h"
 #include "../misc/utils.h"
 #include "../msgTracking.h"
+#include "../tasks/all.h"
+#include "../tasks/push.h"
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -311,6 +313,7 @@ void msg_handler::game_report(Session& session, Message& msg)
     }
 
     data_edit::report_game(session.user,game,phase,score1,score2,penalty1,penalty2,scorers);
+    maindata->tasks.push.game_results( game );
 
     return_result(session,msg,make_result());
 }

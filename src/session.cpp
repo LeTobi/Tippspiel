@@ -117,6 +117,10 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::get_event_ranking(*this,msg);
     else if (msg.name == "console")
         msg_handler::console_input(*this, msg);
+    else if (msg.name == "push_enable")
+        msg_handler::push_enable(*this,msg);
+    else if (msg.name == "push_disable")
+        msg_handler::push_disable(*this,msg);
     else {
         return_client_error(*this,msg,"Diese Funktion ist nicht teil der API");
     }

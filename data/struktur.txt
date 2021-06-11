@@ -117,3 +117,11 @@ type Rank
     EventTipp eventtipp
     int points
     int tippcount
+
+type PushSub
+    int createdAt
+    User user
+    char 250 endpoint
+    char 100 publickey
+    char 50 auth
+

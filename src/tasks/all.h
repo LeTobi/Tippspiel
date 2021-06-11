@@ -3,6 +3,7 @@
 
 class EmailTask;
 class MsgDistributor;
+class PushTask;
 
 class ServerTasks {
 public:
@@ -16,6 +17,7 @@ public:
 
     EmailTask& emails;
     MsgDistributor& distribution;
+    PushTask& push;
 
 };
 
