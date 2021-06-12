@@ -5,7 +5,7 @@
 using namespace tobilib;
 using namespace h2rfp;
 
-const int MsgCache::CACHE_SIZE = 100;
+const int MsgCache::CACHE_SIZE = 300;
 
 MsgCache::Entry::Entry(const MsgID& _id): id(_id)
 { }

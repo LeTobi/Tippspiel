@@ -24,6 +24,8 @@ Database::Cluster data_edit::get_event_tipp(Database::Cluster user, Database::Cl
         maindata->storage.end_critical_operation(lock);
 
         global_message_update(rank,WAIT_LONG);
+        global_message_update(tipp,WAIT_ENDLESS);
+        global_message_update(event,WAIT_LONG);
     }
 
     return tipp;

@@ -121,7 +121,7 @@ type Rank
 type PushSub
     int createdAt
     User user
-    char 250 endpoint
-    char 100 publickey
-    char 50 auth
+    char 500 endpoint
+    char 200 publickey
+    char 200 auth
 

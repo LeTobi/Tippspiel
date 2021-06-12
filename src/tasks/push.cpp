@@ -10,7 +10,7 @@
 
 const std::string INPUT_PATH = "../../push/input.json";
 const std::string OUTPUT_PATH = "../../push/output.txt";
-const std::string PUSH_CMD = "php ../../push/notifier.php " + INPUT_PATH + " " + OUTPUT_PATH;
+const std::string PUSH_CMD = "php ../../push/notifier.php " + INPUT_PATH + " " + OUTPUT_PATH + " > ../../push/log.txt 2> ../../push/err.txt";
 
 using namespace tobilib;
 using namespace h2rfp;
@@ -33,7 +33,7 @@ void PushTask::tick()
             throw tobilib::Exception("Da stimmt was mit dem Push Prozess nicht.","PushTask::tick()");
         } else {
             send_process = 0;
-            get_send_result();
+            get_send_result(status);
         }
     }
     else if (!out_data.empty()) {
@@ -112,18 +112,26 @@ void PushTask::send()
     send_process = fork();
     if (send_process == 0)
     {
-        system(PUSH_CMD.c_str());
-        exit(0);
+        int code = system(PUSH_CMD.c_str());
+        exit(code);
     }
 }
 
-void PushTask::get_send_result()
+void PushTask::get_send_result(int status)
 {
+    if (!WIFEXITED(status)) {
+        log << "FEHLER: Der Push-Prozess wurde unfreiwillig beendet." << std::endl;
+        return;
+    }
+    if (!WEXITSTATUS(status) != 0) {
+        log << "FEHLER: Der Push-Prozess signalisiert einen Fehler" << std::endl;
+        return;
+    }
+
     log << "Eine Push benachrichtigung war erfolgreich." << std::endl;
     std::fstream file (OUTPUT_PATH,std::fstream::in);
     std::string endpoint;
-    file >> endpoint;
-    while (file)
+    while (file >> endpoint)
     {
         Database::Cluster sub = data_edit::get_subscription(endpoint);
         if (sub.is_null())

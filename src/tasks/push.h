@@ -22,7 +22,7 @@ private:
 
     void enqueue(tobilib::Database::Cluster sub, const std::string& type, tobilib::h2rfp::JSObject data);
     void send();
-    void get_send_result();
+    void get_send_result(int status);
 };
 
 #endif

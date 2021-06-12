@@ -25,7 +25,7 @@ void msg_handler::push_enable(Session& session, const tobilib::h2rfp::Message& m
         return;
     }
 
-    if (endpoint.size() > 250) {
+    if (endpoint.size() > 500) {
         return_server_error(session,msg,"Der Push endpoint ist zu lang.");
         maindata->log << "FEHLER: Es wurde nicht genug platz fuer einen Endpoint reserviert. Anfrage von size " << endpoint.size() << std::endl;
         return;
