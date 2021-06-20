@@ -14,7 +14,15 @@ namespace data_edit
         tobilib::Database::Cluster winnerteam,
         tobilib::Database::Cluster topscorer
     );
-
+    void report_event(
+        tobilib::Database::Cluster event,
+        tobilib::Database::Cluster user,
+        tobilib::Database::Cluster winnerteam,
+        tobilib::Database::Cluster topscorer
+    );
+    void event_evaluate(
+        tobilib::Database::Cluster event
+    );
 }
 
 #endif

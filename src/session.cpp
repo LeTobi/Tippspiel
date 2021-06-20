@@ -79,6 +79,8 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::signin(*this, msg);
     else if (msg.name == "signout")
         msg_handler::signout(*this, msg);
+    else if (msg.name == "setlang")
+        msg_handler::setlang(*this, msg);
     else if (msg.name == "me")
         msg_handler::inform_identity(*this, msg);
     else if (msg.name == "get_data")
@@ -103,6 +105,8 @@ void Session::on_message(h2rfp::Message& msg)
         msg_handler::game_report(*this,msg);
     else if (msg.name == "eventTipp")
         msg_handler::event_tipp(*this,msg);
+    else if (msg.name == "eventReport")
+        msg_handler::event_report(*this,msg);
     else if (msg.name == "group_create")
         msg_handler::group_create(*this,msg);
     else if (msg.name == "group_rename")

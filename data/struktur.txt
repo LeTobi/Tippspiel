@@ -8,7 +8,7 @@ type User
     char 100 token
     Rank [] ranks
     Group [] groups
-    User invitor
+    char 10 lang
     bool perm_eventAnnounce
     bool perm_eventReport
     bool perm_gameAnnounce

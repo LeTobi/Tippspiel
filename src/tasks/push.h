@@ -13,6 +13,8 @@ public:
 
     void game_reminder(tobilib::Database::Cluster game);
     void game_results(tobilib::Database::Cluster game);
+    void event_reminder(tobilib::Database::Cluster event);
+    void event_results(tobilib::Database::Cluster event);
 
 private:
     tobilib::Logger log = std::string("PushTask: ");

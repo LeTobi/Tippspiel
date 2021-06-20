@@ -8,13 +8,6 @@ Database database;
 
 int main()
 {
-    std::cout << "Stelle sicher, dass das Tippspiel nicht läuft!" << std::endl;
-    std::cout << "weiter mit 'ja'" << std::endl;
-    std::string inp;
-    std::getline(std::cin,inp);
-    if (inp != "ja")
-        return 0;
-
     std::cout << "bearbeite Datenbank..." << std::endl;
     database.setPath("../../data/");
     database.init();

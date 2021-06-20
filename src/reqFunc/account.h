@@ -7,6 +7,7 @@ namespace msg_handler {
 
     void make_new_user(Session&, const tobilib::h2rfp::Message&);
     void restore_token(Session&, const tobilib::h2rfp::Message&);
+    void setlang(Session&, const tobilib::h2rfp::Message&);
 
 }
 

@@ -19,6 +19,12 @@ void msg_handler::make_new_user(Session& session, const Message& msg)
     StringPlus email = msg.data.get("email","");
     StringPlus lang = msg.data.get("lang","");
 
+    if (lang.size() > 10)
+    {
+        maindata->log << "Warnung: Bei der Registrierung wurde eine Sprache mit >10 Zeichen angefordert (" << lang << ")" << std::endl;
+        lang = "";
+    }
+
     for (Database::Cluster user: maindata->storage.list("User"))
     {
         if (StringPlus(user["name"].get<std::string>()).toLowerCase() == name.toLowerCase())
@@ -53,6 +59,7 @@ void msg_handler::restore_token(Session& session, const Message& msg)
     Database::Cluster target_user;
     StringPlus email = msg.data.get("email","");
     StringPlus lang = msg.data.get("lang","");
+    
     if (!email.empty())
     {
         for (Database::Cluster user: maindata->storage.list("User"))
@@ -91,6 +98,24 @@ void msg_handler::restore_token(Session& session, const Message& msg)
         return;
     }
     data_edit::set_user_lastrecovery(target_user, get_time());
+    if (target_user["lang"].get<std::string>().empty())
+        target_user["lang"].set( lang );
 
-    session.tasks.token_restore.restore_token(target_user, lang, msg.id);
+    session.tasks.token_restore.restore_token(target_user, target_user["lang"].get<std::string>(), msg.id);
+}
+
+void msg_handler::setlang(Session& session, const Message& msg)
+{
+    if (!check_login(session,msg) ||
+        !check_parameter(session,msg,"lang"))
+        return;
+    
+    std::string lang = msg.data.get("lang","");
+    if (lang.size() > 10) {
+        maindata->log << "Warnung: Eine Sprache war laenger als 10 zeichen (" << lang << ")" << std::endl;
+        return_server_error(session,msg,"Der Sprach-String war zu lang");
+        return;
+    }
+    session.user["lang"].set( lang );
+    return_result(session,msg,make_result());
 }

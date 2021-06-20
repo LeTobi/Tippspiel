@@ -69,6 +69,7 @@ JSObject msg_creation::detail::user_make_msg(Session& session, const MsgID& id)
         answer.add_child("gameTipps",gtipps);
         answer.add_child("groups",groups);
         answer.put("points", points);
+        answer.put("lang", user["lang"].get<std::string>());
         answer.put("permission.eventAnnounce", user["perm_eventAnnounce"].get<bool>());
         answer.put("permission.eventReport",   user["perm_eventReport"].get<bool>());
         answer.put("permission.gameAnnounce",  user["perm_gameAnnounce"].get<bool>());

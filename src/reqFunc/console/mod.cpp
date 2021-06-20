@@ -1,7 +1,9 @@
 #include "mod.h"
 #include "util.h"
 #include "../../dataEdit/game.h"
+#include "../../dataEdit/event.h"
 #include "../../main-data.h"
+#include "../../misc/enums.h"
 #include <sstream>
 
 using namespace tobilib;
@@ -23,8 +25,31 @@ void cmd_mod(Session& session, const Message& msg,const std::string& in)
             cmd_echo(session,msg,"Zu diesem Index existiert kein Spiel");
             return;
         }
+        if (game["gameStatus"].get<int>() != GSTATUS_ENDED) {
+            cmd_echo(session,msg,"Zu diesem Spiel sind noch keine Resultate bekannt (gameStatus != GSTATUS_ENDED)");
+            return;
+        }
         data_edit::game_evaluate(game);
         cmd_echo(session,msg,"Das Spiel wurde ausgewertet");
+        return;
+    }
+    if (cmd=="eventeval")
+    {
+        int index;
+        input >> index;
+        Database::Cluster event = maindata->storage.list("Event")[index];
+        if (event.is_null())
+        {
+            cmd_echo(session,msg,"Zu diesem Index existiert kein Event");
+            return;
+        }
+        if (event["eventStatus"].get<int>() != ESTATUS_ENDED)
+        {
+            cmd_echo(session,msg,"Zu diesem Event sind noch keine Resultate bekannt (eventStatus != ESTATUS_ENDED");
+            return;
+        }
+        data_edit::event_evaluate(event);
+        cmd_echo(session,msg,"Das Event wurde ausgewertet");
         return;
     }
     if (cmd=="erase")

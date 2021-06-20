@@ -6,6 +6,7 @@
 namespace msg_handler {
 
     void event_tipp(Session&, tobilib::h2rfp::Message&);
+    void event_report(Session&, tobilib::h2rfp::Message&);
 
 }
 

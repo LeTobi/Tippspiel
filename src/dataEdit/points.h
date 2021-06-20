@@ -16,6 +16,12 @@ namespace data_edit {
         int scorer
         );
 
+    void evtipp_set_result(
+        tobilib::Database::Cluster evtipp,
+        bool team,
+        bool scorer
+    );
+
 }
 
 #endif

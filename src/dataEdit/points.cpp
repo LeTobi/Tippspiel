@@ -52,10 +52,34 @@ void data_edit::tipp_set_result(Database::Cluster tipp, bool team, bool diff, bo
         tipp["reward_draw"].set( draw );
         tipp["reward_scorer"].set( scorer );
         tipp["reward"].set(points);
-        tipp["rank"]["points"].set( old_points_rank + delta_points);
+        tipp["rank"]["points"].set( old_points_rank + delta_points );
     maindata->storage.end_critical_operation(lock);
 
     global_message_update(*tipp["user"],WAIT_SHORT);
     global_message_update(*tipp["rank"],WAIT_SHORT);
     global_message_update(tipp, WAIT_SHORT);
+}
+
+void data_edit::evtipp_set_result(Database::Cluster evtipp, bool team, bool scorer)
+{
+    int points = 0;
+    if (team)
+        points += 3;
+    if (scorer)
+        points += 3;
+    
+    int old_points_tipp = evtipp["reward"].get<int>();
+    int old_points_rank = evtipp["rank"]["points"].get<int>();
+    int delta_points = points - old_points_tipp;
+
+    FlagRequest lock = maindata->storage.begin_critical_operation();
+        evtipp["reward_winner"].set( team );
+        evtipp["reward_topscorer"].set( scorer );
+        evtipp["reward"].set( points );
+        evtipp["rank"]["points"].set( old_points_rank + delta_points );
+    maindata->storage.end_critical_operation(lock);
+
+    global_message_update(*evtipp["user"] , WAIT_SHORT);
+    global_message_update(*evtipp["rank"], WAIT_SHORT);
+    global_message_update(evtipp, WAIT_SHORT);
 }

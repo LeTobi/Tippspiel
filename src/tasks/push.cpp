@@ -1,6 +1,7 @@
 #include "push.h"
 #include "../main-data.h"
 #include "../dataEdit/game.h"
+#include "../dataEdit/event.h"
 #include "../dataEdit/push.h"
 #include <fstream>
 #include <boost/property_tree/json_parser.hpp>
@@ -48,6 +49,7 @@ void PushTask::game_reminder(tobilib::Database::Cluster game)
         Database::Cluster tipp = data_edit::get_game_tipp(*sub["user"],game,false);
 
         JSObject data;
+        data.put("lang", sub["user"]["lang"].get<std::string>());
         data.put("name1", game["teams"][0]["short"].get<std::string>());
         data.put("name2", game["teams"][1]["short"].get<std::string>());
         data.put("location", game["location"]["name"].get<std::string>());
@@ -66,6 +68,7 @@ void PushTask::game_results(tobilib::Database::Cluster game)
         if (tipp.is_null())
             continue;
         JSObject data;
+        data.put("lang", sub["user"]["lang"].get<std::string>());
         data.put("name1", game["teams"][0]["short"].get<std::string>());
         data.put("name2", game["teams"][1]["short"].get<std::string>());
         data.put("score1", game["scores"][0].get<int>());
@@ -79,6 +82,42 @@ void PushTask::game_results(tobilib::Database::Cluster game)
         enqueue(sub,"GameEnd",data);
     }
     send();
+}
+
+void PushTask::event_reminder(tobilib::Database::Cluster event)
+{
+    for (Database::Cluster sub: maindata->storage.list("PushSub"))
+    {
+        Database::Cluster evtipp = data_edit::get_event_tipp(*sub["user"],event,false);
+
+        JSObject data;
+        data.put("lang", sub["user"]["lang"].get<std::string>());
+        data.put("name",event["name"].get<std::string>());
+        data.put("id",event.index());
+        data.put("tipped",!evtipp.is_null());
+
+        enqueue(sub,"EventStart",data);
+    }
+}
+
+void PushTask::event_results(tobilib::Database::Cluster event)
+{
+    for (Database::Cluster sub: maindata->storage.list("PushSub"))
+    {
+        Database::Cluster evtipp = data_edit::get_event_tipp(*sub["user"],event,false);
+        if (evtipp.is_null())
+            continue;
+
+        JSObject data;
+        data.put("lang", sub["user"]["lang"].get<std::string>());
+        data.put("name",event["name"].get<std::string>());
+        data.put("id",event.index());
+        data.put("winner",event["winner"]["short"].get<std::string>());
+        data.put("topscorer",event["topscorer"]["name"].get<std::string>());
+        data.put("points",evtipp["reward"].get<int>());
+
+        enqueue(sub,"EventEnd",data);
+    }
 }
 
 void PushTask::enqueue(tobilib::Database::Cluster sub, const std::string& type, tobilib::h2rfp::JSObject data)

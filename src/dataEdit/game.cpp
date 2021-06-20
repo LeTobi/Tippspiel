@@ -216,24 +216,20 @@ void data_edit::report_game(
         const std::vector<tobilib::Database::Cluster>& scorers
         )
 {
-    FlagRequest lock = maindata->storage.begin_critical_operation();
+    game["reporter"].set( user );
+    game["reportedAt"].set( get_time() );
+    game["gameStatus"].set( GSTATUS_ENDED );
+    game["phase"].set( phase );
+    game["scores"][0].set( score1 );
+    game["scores"][1].set( score2 );
+    game["penalty"][0].set( penalty1 );
+    game["penalty"][1].set( penalty2 );
 
-        game["reporter"].set( user );
-        game["reportedAt"].set( get_time() );
-        game["gameStatus"].set( GSTATUS_ENDED );
-        game["phase"].set( phase );
-        game["scores"][0].set( score1 );
-        game["scores"][1].set( score2 );
-        game["penalty"][0].set( penalty1 );
-        game["penalty"][1].set( penalty2 );
-
-        Database::Member db_scorers = game["scorers"];
-        while (db_scorers.begin() != db_scorers.end())
-            db_scorers.erase(db_scorers.begin());
-        for (tobilib::Database::Cluster scorer: scorers)
-            db_scorers.emplace().set( scorer );
-
-    maindata->storage.end_critical_operation(lock);
+    Database::Member db_scorers = game["scorers"];
+    while (db_scorers.begin() != db_scorers.end())
+        db_scorers.erase(db_scorers.begin());
+    for (tobilib::Database::Cluster scorer: scorers)
+        db_scorers.emplace().set( scorer );
 
     game_evaluate(game);
     global_message_update(game,WAIT_SHORT);
@@ -311,16 +307,29 @@ void data_edit::game_fetch_stage(Database::Cluster game)
     Database::Cluster team1after = team1before;
     Database::Cluster team2before = *game["teams"][1];
     Database::Cluster team2after = team2before;
+    Database::Cluster winnerbefore = *game["winner"];
+    Database::Cluster winnerafter = winnerbefore;
     if (!game["previousStage"][0]->is_null())
         team1after = *game["previousStage"][0]["winner"];
     if (!game["previousStage"][1]->is_null())
         team2after = *game["previousStage"][1]["winner"];
 
-    if (team1before!=team2after || team2before!=team2after)
+    if (winnerbefore == team1before)
+        winnerafter = team1after;
+    if (winnerbefore == team2before)
+        winnerafter = team2after;
+
+    game["teams"][0].set( team1after );
+    game["teams"][1].set( team2after );
+    game["winner"].set( winnerafter );
+
+    if (winnerbefore != winnerafter)
     {
-        game["teams"][0].set( team1after );
-        game["teams"][1].set( team2after );
         game_fetch_stage(*game["nextStage"]);
+        global_message_update(game, WAIT_SHORT);
+    }
+    else if (team1before != team1after || team2before != team2after)
+    {
         global_message_update(game, WAIT_SHORT);
     }
 }

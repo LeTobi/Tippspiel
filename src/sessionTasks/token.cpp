@@ -44,6 +44,7 @@ void RegisterTask::make_new_user(const std::string& name, const std::string& ema
     }
 
     new_user = data_edit::create_user(name,email);
+    new_user["lang"].set( lang );
     response_id = rid;
     std::string new_token = data_edit::make_new_token(new_user);
     data_edit::set_user_token(new_user,new_token);
