@@ -6,3 +6,12 @@ selection build
     link tc
     link crypto
     link ssl
+
+selection edit
+    exe tippedit main-edit.cpp
+    link pthread
+    link boost_system
+    link boost_thread
+    link tc
+    link crypto
+    link ssl

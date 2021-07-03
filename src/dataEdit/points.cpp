@@ -64,9 +64,9 @@ void data_edit::evtipp_set_result(Database::Cluster evtipp, bool team, bool scor
 {
     int points = 0;
     if (team)
-        points += 3;
+        points += 4;
     if (scorer)
-        points += 3;
+        points += 4;
     
     int old_points_tipp = evtipp["reward"].get<int>();
     int old_points_rank = evtipp["rank"]["points"].get<int>();

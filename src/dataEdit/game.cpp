@@ -244,17 +244,17 @@ void data_edit::game_evaluate(Database::Cluster game)
     int penalty2 = game["penalty"][1].get<int>();
     Database::Member db_scorers = game["scorers"];
     Database::Member db_tipps = game["tipps"];
-    bool is_penalty = score1==score2;
+    bool is_penalty = phase==GAMEPHASE_PENALTY;
 
     Database::Cluster winnerteam;
     if (score1>score2)
         winnerteam = *game["teams"][0];
     else if (score2>score1)
         winnerteam = *game["teams"][1];
-    else if (phase>=GAMEPHASE_PENALTY) {
+    else if (is_penalty) {
         if (penalty1>penalty2)
             winnerteam = *game["teams"][0];
-        if (penalty2<penalty1)
+        if (penalty2>penalty1)
             winnerteam = *game["teams"][1];
     }
 
@@ -272,14 +272,16 @@ void data_edit::game_evaluate(Database::Cluster game)
         TippResult res;
         int tscore1 = tipp["bet"][0].get<int>();
         int tscore2 = tipp["bet"][1].get<int>();
+        bool t_is_draw = tscore1==tscore2;
         Database::Cluster twinner = *tipp["winner"];
         Database::Cluster tscorer = *tipp["topscorer"];
-        bool t_is_penalty = tscore1==tscore2;
+        if (t_is_draw && !is_penalty)
+            twinner = Database::Cluster();
 
-        res.team = (!is_penalty && !t_is_penalty && (twinner == winnerteam)) || (is_penalty && t_is_penalty);
+        res.team = twinner == winnerteam;
         res.diff = score1-score2 == tscore1-tscore2;
         res.exact = score1==tscore1 && score2==tscore2;
-        res.draw = phase >= GAMEPHASE_PENALTY && is_penalty && t_is_penalty;
+        res.draw = is_penalty && t_is_draw && winnerteam==twinner;
         for (Database::Member scorer: db_scorers)
             if (*scorer==tscorer)
                 res.goals++;
